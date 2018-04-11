@@ -1,0 +1,8 @@
+fw: fw1,fw2,fw3
+nw: nw1-1.0.0.0/16,nw2-2.0.0.0/16
+
+link: nw1,fw1
+link: fw1,fw2
+link: fw1,fw3
+link: fw2,fw3
+link: nw2,fw2

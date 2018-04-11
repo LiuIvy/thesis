@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Heool</title>
+</head>
+<body>
+	<div id="output">
+		Hello
+	</div>
+	<button id="insert" onclick="insert()">Insert</button>
+	<button id="remove" onclick="remove()">Remove</button>
+	<div id="content"></div>
+	<script type="text/javascript">
+		let count = false;
+		// const fs = require('fs');
+		function insert () {
+			let data = `<div><h1>Success</h1>\n<img src="pictures/firewall.png"></div>\n<button id="test">Test</button>`
+			let div = document.createElement('div');
+			div.id = 'test';
+			div.className = 'row';
+			div.innerHTML = data;
+			document.getElementById('content').appendChild(div);
+		}
+
+		function remove () {
+			let parent = document.getElementById('test');
+			document.getElementById('content').removeChild(parent);
+		}
+	</script>
+</body>
+</html>

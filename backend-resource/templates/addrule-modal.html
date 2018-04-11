@@ -1,0 +1,119 @@
+<div id="addrule-modal" class="modal fade" data-placement="bottom" data-background="true" data-backdrop="false" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content white">
+			
+			<div class="modal-header">
+				<button id="addrule-close" type="button" class="close white" aria-hidden="true">&#160;&times;&#160;</button>
+				<h1 id="addrule-title" class="center bigger-200 lighter no-margin">Add Rule</h1>
+			</div>
+			
+			<div class="modal-body">
+
+				<div class="row">
+
+					<div class="col-xs-6">
+						<form class="form-horizontal" role="form">
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-inout">In / Out:</label>
+								<div class="col-sm-4">
+									<select class="form-control col-sm-8" id="addrule-inout">
+										<option value="INPUT">INPUT</option>
+										<option value="OUTPUT">OUTPUT</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-srcip">Source Address:</label>
+								<div class="col-sm-8">
+									<input type="text" id="addrule-srcip" placeholder="0.0.0.0" class="input-medinum  input-mask-ip">
+									<label class="control-label">/</label>
+									<input type="text" id="addrule-srcmask" placeholder="0" class="input-mini">
+								</div>
+							</div>
+							<!-- <div class="space-4"></div> -->
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-destip">Destination Address:</label>
+								<div class="col-sm-8">
+									<input type="text" id="addrule-destip" placeholder="0.0.0.0" class="input-medinum">
+									<label class="control-label">/</label>
+									<input type="text" id="addrule-destmask" placeholder="0" class="input-mini">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-src_port">Source Port:</label>
+								<div class="col-sm-6">
+									<input type="text" id="addrule-src_port" placeholder="0" class="input-mini">
+									<label class="control-label">~</label>
+									<input type="text" id="addrule-destmask" placeholder="0" class="input-mini">
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-dest_port">Destination Port:</label>
+								<div class="col-sm-6">
+									<input type="text" id="addrule-dest_port" placeholder="0" class="input-mini">
+									<label class="control-label">~</label>
+									<input type="text" id="addrule-destmask" placeholder="0" class="input-mini">
+								</div>
+								
+							</div>
+						</form>
+					</div>
+
+					<div class="col-xs-6">
+						<form class="form-horizontal" role="form">
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-protocol">Protocol:</label>
+								<div class="col-sm-4">
+									<select class="form-control col-sm-8" id="addrule-protocol">
+										<option value="tcp">TCP</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-tcpflag">Flag:</label>
+								<div class="col-sm-4">
+									<select class="form-control col-sm-8" id="addrule-tcpflag">
+										<option value="ANY">ANY</option>
+										<option value="SYN">SYN</option>
+										<option value="SYN+ACK">SYN+ACK</option>
+										<option value="ACK">ACK</option>
+										<option value="FIN">FIN</option>
+										<option value="FIN+ACK">FIN+ACK</option>
+										<option value="RST">RST</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-sm-4 control-label no-padding-right" for="addrule-action">Action:</label>
+								<div class="col-sm-4">
+									<select class="form-control col-sm-8" id="addrule-action">
+										<option value="ACCEPT">ACCEPT</option>
+										<option value="DROP">DROP</option>
+									</select>
+								</div>
+							</div>
+						</form>
+					</div>
+					<label></label>
+					<div class="hr hr-8"></div>
+					<div class="row">
+						<div class="col-md-offset-8 ">
+							<button id="addrule-confirm" class="btn btn-sm btn-success">
+								<i class="ace-icon fa fa-check"></i>
+								Confirm
+							</button>
+						</div>
+					</div>	
+				</div>
+
+			</div>
+
+		</div><!-- /.modal-content -->
+
+	</div><!-- /.modal-dialog -->
+</div>

@@ -1,0 +1,92 @@
+div.block-header {
+	font-size: 24px;
+	color: #393939;
+	align: center;
+}
+
+.mybutton {
+	align-items: flex-start;
+background-attachment: scroll;
+background-clip: border-box;
+background-color: rgb(121, 121, 121);
+background-image: linear-gradient(rgb(137, 137, 137) 0px, rgb(105, 105, 105) 100%);
+background-origin: padding-box;
+background-position-x: 0%;
+background-position-y: 0%;
+background-repeat-x:;
+background-repeat-y:;
+background-size: auto;
+border-bottom-color: rgb(255, 255, 255);
+border-bottom-left-radius: 8px;
+border-bottom-right-radius: 8px;
+border-bottom-style: none;
+border-bottom-width: 0px;
+border-image-outset: 0px;
+border-image-repeat: stretch;
+border-image-slice: 100%;
+border-image-source: none;
+border-image-width: 1;
+border-left-color: rgb(255, 255, 255);
+border-left-style: none;
+border-left-width: 0px;
+border-right-color: rgb(255, 255, 255);
+border-right-style: none;
+border-right-width: 0px;
+border-top-color: rgb(255, 255, 255);
+border-top-left-radius: 8px;
+border-top-right-radius: 8px;
+border-top-style: none;
+border-top-width: 0px;
+box-shadow: none;
+box-sizing: border-box;
+color: rgb(255, 255, 255);
+cursor: pointer;
+display: inline-block;
+filter: none;
+font-family: "Open Sans";
+font-size: 15px;
+font-stretch: normal;
+font-style: normal;
+font-variant-caps: normal;
+font-variant-ligatures: normal;
+font-variant-numeric: normal;
+font-weight: normal;
+height: 60px;
+letter-spacing: normal;
+line-height: 21.75px;
+margin-bottom: 2px;
+margin-left: 2px;
+margin-right: 2px;
+margin-top: 2px;
+overflow-x: visible;
+overflow-y: visible;
+padding-bottom: 7px;
+padding-left: 0px;
+padding-right: 0px;
+padding-top: 8px;
+position: relative;
+text-align: center;
+text-indent: 0px;
+text-rendering: auto;
+text-shadow: 0 -1px 0 rgba(0,0,0,.25);
+text-size-adjust: 100%;
+text-transform: none;
+touch-action: manipulation;
+transition-delay: 0s, 0s, 0s;
+transition-duration: 0.15s, 0.15s, 0.15s;
+transition-property: background-color, border-color, opacity;
+transition-timing-function: ease, ease, ease;
+user-select: none;
+vertical-align: middle;
+white-space: nowrap;
+width: 64px;
+word-spacing: 0px;
+writing-mode: horizontal-tb;
+-webkit-appearance: none;
+-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+-webkit-border-image:
+}
+
+li[class*=item-] {
+	border: none;
+}

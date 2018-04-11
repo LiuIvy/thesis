@@ -1,0 +1,65 @@
+<HTML>
+<Head>
+<Script Language=JavaScript></Script>
+<Script language='VBScript'> 
+
+
+Sub saveThis_OnClick
+isData = xferContent.innerHTML
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set contentFile = fso.CreateTextFile("Test.txt",True)
+contentFile.Write(isData)
+contentFile.Close
+saveBtn.disabled = true
+appendBtn.disabled = false
+MsgBox "Successfully saved Test.txt to the Desktop"
+set fso = Nothing
+End Sub
+
+Sub appendThis_OnClick
+isData = appendContent.innerHTML
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set contentFile = fso.GetFile("Test.txt")
+Set fsoStream = contentFile.OpenAsTextStream(8)
+fsoStream.WriteLine(isData)
+fsoStream.Close
+appendBtn.disabled = true
+readBtn.disabled = false
+MsgBox "Successfully appended to Test.txt"
+Set fsoStream = Nothing
+Set fso = Nothing
+End Sub
+
+Sub readThis_onClick
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set contentFile = fso.GetFile("Test.txt")
+Set fsoStream = contentFile.OpenAsTextStream(1)
+isData = fsoStream.ReadAll
+readContent.innerHTML = isData
+fsoStream.Close
+readBtn.disabled = true
+Set fsoStream = Nothing
+Set fso = Nothing
+End Sub
+
+</Script>
+</Head>
+<Body>
+<center>
+<Div id=xferContent> This is the text that will be saved. </Div>
+<Div id=appendContent>	And this is the text that will be appended to the file. </Div>
+<br>
+<input type=button id=saveBtn value='Save to text file' Name='saveThis'>
+<br><br>
+<input type=button id=appendBtn value='Append to the file' Name='appendThis'>
+<br><br>
+<input type=button id=readBtn value='Read from the file' Name='readThis'>
+<br><br>
+<Div id=readContent Style='Font Size:16pt;Color:Blue;'></Div>
+</center>
+<Script>
+appendBtn.disabled = true;
+readBtn.disabled = true;
+</Script>
+</Body>
+</HTML>

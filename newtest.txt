@@ -1,0 +1,100 @@
+iptables -A INPUT -i eth0 -p tcp -s 1.224.0.0/12 -d 2.96.0.0/12 -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.8.0.0/15 -d 2.96.0.0/12 -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.72.0.0/14 -d 2.223.0.0/16 --tcp-flags SYN,ACK,FIN,RST SYN -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/15 -d 2.62.0.0/16 -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.100.0.0/14 -d 2.132.0.0/16 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.136.0.0/13 -d 2.152.0.0/13 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.60.0.0/16 -d 2.232.0.0/13 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.164.0.0/14 -d 2.112.0.0/12 -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.184.0.0/13 -d 2.88.0.0/14 -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/16 -d 2.160.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/16 -d 2.160.0.0/12 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/16 -d 2.160.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/16 -d 2.160.0.0/12 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/16 -d 2.160.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.58.0.0/16 -d 2.160.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.192.0.0/12 -d 2.32.0.0/13 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.250.0.0/16 -d 2.248.0.0/13 -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.224.0.0/12 -d 2.120.0.0/13 --tcp-flags SYN,ACK,FIN,RST RST -j DROP
+iptables -A INPUT -i eth0 -p tcp -s 1.74.0.0/15 -d 2.160.0.0/13 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.240.0.0/12 -d 2.208.0.0/12 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.240.0.0/12 -d 2.208.0.0/12 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.240.0.0/12 -d 2.208.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.60.0.0/14 -d 2.156.0.0/14 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.128.0.0/12 -d 2.252.0.0/14 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.232.0.0/15 -d 2.64.0.0/12 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.220.0.0/14 -d 1.60.0.0/14 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.40.0.0/13 -d 1.0.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.40.0.0/13 -d 1.0.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.40.0.0/13 -d 1.0.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.40.0.0/13 -d 1.0.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.240.0.0/13 -d 1.48.0.0/13 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.144.0.0/12 -d 1.24.0.0/13 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.224.0.0/12 -d 1.76.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.224.0.0/12 -d 1.76.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.224.0.0/12 -d 1.76.0.0/15 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.83.0.0/16 -d 1.237.0.0/16 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.144.0.0/16 -d 1.74.0.0/15 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.42.0.0/16 -d 1.40.0.0/13 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.32.0.0/12 -d 1.48.0.0/14 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.32.0.0/13 -d 1.64.0.0/12 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.32.0.0/13 -d 1.74.0.0/15 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.24.0.0/13 -d 1.32.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.24.0.0/13 -d 1.32.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.24.0.0/13 -d 1.32.0.0/12 --tcp-flags SYN,ACK,FIN,RST ACK -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.24.0.0/13 -d 1.32.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.24.0.0/13 -d 1.32.0.0/12 --tcp-flags SYN,ACK,FIN,RST RST -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.24.0.0/13 -d 1.32.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.74.0.0/16 -d 1.16.0.0/15 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.240.0.0/12 -d 1.240.0.0/12 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.13.0.0/16 -d 1.104.0.0/13 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.112.0.0/14 -d 1.192.0.0/14 -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.120.0.0/13 -d 1.187.0.0/16 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.120.0.0/13 -d 1.187.0.0/16 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.120.0.0/13 -d 1.187.0.0/16 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.3.0.0/16 -d 1.140.0.0/14 -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.32.0.0/12 -d 1.125.0.0/16 --tcp-flags SYN,ACK,FIN,RST ACK -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.32.0.0/12 -d 1.125.0.0/16 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.32.0.0/12 -d 1.125.0.0/16 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.32.0.0/12 -d 1.125.0.0/16 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.32.0.0/12 -d 1.125.0.0/16 --tcp-flags SYN,ACK,FIN,RST FIN -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.240.0.0/15 -d 1.144.0.0/13 -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.240.0.0/12 -d 1.108.0.0/14 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.240.0.0/12 -d 1.108.0.0/14 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.240.0.0/12 -d 1.108.0.0/14 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.240.0.0/12 -d 1.108.0.0/14 --tcp-flags SYN,ACK,FIN,RST SYN -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.80.0.0/16 -d 1.128.0.0/14 -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.202.0.0/16 -d 1.48.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.202.0.0/16 -d 1.48.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.202.0.0/16 -d 1.48.0.0/12 --tcp-flags SYN,ACK,FIN,RST FIN -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.202.0.0/16 -d 1.48.0.0/12 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.240.0.0/12 -d 1.12.0.0/14 -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.86.0.0/15 -d 1.172.0.0/16 -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.60.0.0/14 -d 1.164.0.0/14 -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.192.0.0/12 -d 1.240.0.0/13 -j DROP
+iptables -A INPUT -i eth1 -p tcp -s 2.76.0.0/16 -d 1.144.0.0/12 -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.176.0.0/12 -d 2.80.0.0/12 -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.79.0.0/16 -d 2.26.0.0/15 -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.208.0.0/13 -d 2.102.0.0/15 --tcp-flags SYN,ACK,FIN,RST RST -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.208.0.0/13 -d 2.102.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.208.0.0/13 -d 2.102.0.0/15 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.208.0.0/13 -d 2.102.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.208.0.0/13 -d 2.102.0.0/15 --tcp-flags SYN,ACK,FIN,RST FIN -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.208.0.0/13 -d 2.102.0.0/15 --tcp-flags SYN,ACK,FIN,RST ACK -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.214.0.0/16 -d 2.88.0.0/13 --tcp-flags SYN,ACK,FIN,RST SYN -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.214.0.0/16 -d 2.88.0.0/13 --tcp-flags SYN,ACK,FIN,RST FIN -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.214.0.0/16 -d 2.88.0.0/13 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.214.0.0/16 -d 2.88.0.0/13 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.214.0.0/16 -d 2.88.0.0/13 --tcp-flags SYN,ACK,FIN,RST ACK -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.40.0.0/14 -d 2.144.0.0/12 -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.57.0.0/16 -d 2.242.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.57.0.0/16 -d 2.242.0.0/15 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.202.0.0/15 -d 2.232.0.0/14 -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.47.0.0/16 -d 2.192.0.0/13 -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.152.0.0/14 -d 2.100.0.0/15 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.152.0.0/14 -d 2.100.0.0/15 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.152.0.0/14 -d 2.100.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.152.0.0/14 -d 2.100.0.0/15 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.152.0.0/14 -d 2.100.0.0/15 --tcp-flags SYN,ACK,FIN,RST FIN -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.152.0.0/14 -d 2.100.0.0/15 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.192.0.0/14 -d 2.200.0.0/14 -j ACCEPT

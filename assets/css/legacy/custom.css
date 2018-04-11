@@ -1,0 +1,60 @@
+
+section {
+	margin-left: 50px;
+	margin-right: 50px;
+}
+
+/*record  thead*/
+div[type="rules-table"] thead {
+  /*height: 10px ; */
+  width: 100%;
+  font-size: 16px;
+}
+
+div[type="rules-table"] thead th{
+	height: 100%;
+}
+
+/*record  tbody*/
+div[type="rules-table"] tbody {
+	font-size: 14px;
+	max-height: 300px ; 
+	width: 100%;
+	overflow-y: scroll;
+}
+
+/* record panel css. */
+div[type="rules-table"] {
+	height: 350px;
+	max-height: 350px;
+}
+
+/*record table */
+div[type="rules-table"] table {
+	width: 100%;
+}
+
+thead, tbody, tr, td, th { display: block; }
+
+tr:after {
+    content: ' ';
+    display: block;
+    visibility: hidden;
+    clear: both;
+}
+
+tbody td, thead th {
+    width: 25%;
+    float: left;
+}
+
+/* sector-label. */
+h3[type="sector-label"] {
+	padding-left: 10px;
+}
+
+div.row h3[type="sector-label"]:first-child {
+	padding-left: 0px;
+}
+
+/* tasklist */
