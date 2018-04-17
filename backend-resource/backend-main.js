@@ -787,30 +787,12 @@ function createAnomalyChart ( event ) {
 	// console.log(event);
 	let nodeName = (this.chart.renderTo.id).split('-')[1];
 	let block = myObject['aclObject'][nodeName]['ARARTree']['leafList'][this.index];
-	//console.log(block);
-	// let testblock = myObject['aclObject'][nodeName]['ARARTree']['leafList'][this.index]['ruleList'];
-	// var portbolck=[];
-	// console.log(testblock);
-	// console.log(testblock.length);
-
-	// for(var i=0;i<=testblock.length;i++)
-	// {
-	// 	portbolck[i]=testblock[i]['src_port'];
-	// 	console.log(portbolck[i]);	
-	// }
 	
-	
-	//console.log(this.index, this, block);
 	console.log(this.index, block);
-
-	// let $porttab = `<li id="li-${this.index}"><a data-toggle="tab" href="#tab-${this.index}">block${this.index}</a></li>`;
-	// $($porttab).appendTo('#port-chart-tabs');
-	
-
 
 	$.gritter.removeAll();
 	//$(`#tab-${nodeName} div#block-content`).empty();
-	$(`#tab-${nodeName} div#block-content`).empty();
+	$(`div#block-content`).empty();
 	let $chart = fs.readFileSync(`${__dirname}/templates/block-information.html`, 'utf-8').toString();
 	$($chart).appendTo(`#tab-${nodeName} div#block-content`);
 	
@@ -1054,28 +1036,71 @@ function depictportResult (thisindex)
 	
 
 	Object.keys(myObject['aclObject']).forEach(function ( nodeName, nodeNameCount ) {
-				
-		
-
 		let curNode = myObject['aclObject'][nodeName];
-		let testblock = curNode['ARARTree']['leafList'][thisindex]['ruleList'];
-		//console.log(testblock);
-		var srctestblock,destestblock;
-		srctestblock=inputSrcPortConvert(testblock);
-		//console.log(srctestblock);
+		let portBlock = curNode['ARARTree']['leafList'][thisindex];
+		
+		var startTime = process.hrtime();
+		var portExtract = portExtractor(portBlock['ruleList']);
+		// console.log('portExtract', portExtract);
 
-		destestblock=inputDesPortConvert(testblock);
+		var portVector = [putVector(portExtract[0]), putVector(portExtract[1])];
+		// console.log('portVector', portVector);
+
+		var mergedVector = [ [], [] ];
+		for (var j = 0; j < mergedVector.length; j++) {
+			for (var i = 0; i < (portVector[j].length - 1); i++) {
+				// console.log(i, mergedVector[j]);
+				if ( _.isEmpty(mergedVector[j]) ) 
+					mergedVector[j].push({ 'min' : i, 'max' : i, 'data' : portVector[j][i] });
+				if ( _.isEqual(portVector[j][i], portVector[j][i+1]) )
+					mergedVector[j][mergedVector[j].length-1]['max'] = i + 1;
+				else
+					mergedVector[j].push({ 'min' : i + 1, 'max' : i + 1, 'data' : portVector[j][i+1] });
+			}
+		}
+		console.log('mergedVector:', mergedVector);
+		portVector = undefined;
+
+		var nunzero=[];
+		var andVector=[];
+		for(var i = 0 ; i < mergedVector[0].length ; i++){
+			andVector[i]=andVector[i]||[];	
+			for(var j = 0 ; j < mergedVector[1].length ; j++){
+				andVector[i][j] = andVector[i][j] || [];
+				for(var z=0 ; z < mergedVector[0][i]['data'].length ; z++){
+					//console.log('i',i,'j',j,'z',z);
+					andVector[i][j][z] = mergedVector[0][i][z] & mergedVector[1][j][z];
+
+					if(andVector[i][j][z]>1)
+						nunzero.push({ 'i' : i, 'j' : j, 'z' : z });
+				}
+				//console.log('mergedVector',mergedVector[0][i]);	
+			}
+		}
+		//console.log('AndVector',andVector);
+		//console.log('AndVector',andVector[andVector.length-1][andVector[andVector.length-1].length-1][andVector[andVector.length-1][andVector[andVector.length-1].length-1].length-1]);
+		console.log('nunzero',nunzero);
+
+
+		var createTime = process.hrtime(startTime);
+		console.log(`port excute: ` + (createTime[0] + createTime[1]/1e9));
+
+
+		/********************************************************************************/
+
+		// var srctestblock,destestblock;
+		// srctestblock=inputSrcPortConvert(portBlock['ruleList']);
+		// //console.log(srctestblock);
+
+		// destestblock=inputDesPortConvert(portBlock['ruleList']);
 		//console.log(destestblock);
 		
-		var srcvector,desvector;
-		srcvector=putvector(srctestblock);
-		desvector=putvector(destestblock);
-		// console.log(srcvector);
-		console.log(desvector);
+		// var srcvector,desvector;
+		// srcvector=putvector(srctestblock);
+		// desvector=putvector(destestblock);
+		
 
-
-
-		 if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
+		if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
 		 	showingNodeCount++;
 		 	return;
 		 }
@@ -1192,9 +1217,10 @@ function depictportResult (thisindex)
 	}
 }
 
-function putvector(ruleList)
-{	//console.log(ruleList);
-	var vector = [],newvector=[];
+
+function putVector ( ruleList ) {
+	//console.log(ruleList);
+	var vector = [];
 	var spaceCnt = -1;
 	var maxSpace = 30;
 	for ( var ruleCnt = 0; ruleCnt < ruleList.length; ruleCnt++ ) {
@@ -1202,23 +1228,57 @@ function putvector(ruleList)
 		for ( var idxCnt = 0; idxCnt < 65535; idxCnt++ ) {//65536
 			vector[idxCnt] = vector[idxCnt] || [];
 			if ( ruleCnt % maxSpace != 0 ) {
-				if ( ( idxCnt >= ruleList[ruleCnt]['min_port'] ) && ( idxCnt <= ruleList[ruleCnt]['max_port'] ) )
+				if ( ( idxCnt >= ruleList[ruleCnt]['min'] ) && ( idxCnt <= ruleList[ruleCnt]['max'] ) )
 					vector[idxCnt][spaceCnt] = ( vector[idxCnt][spaceCnt] * 2 ) + 1;
 				else 
 					vector[idxCnt][spaceCnt] = vector[idxCnt][spaceCnt] * 2;
 			} else {
-				if ( ( idxCnt >= ruleList[ruleCnt]['min_port'] ) && ( idxCnt <= ruleList[ruleCnt]['max_port'] ) )
+				if ( ( idxCnt >= ruleList[ruleCnt]['min'] ) && ( idxCnt <= ruleList[ruleCnt]['max'] ) )
 					vector[idxCnt].push(1);
 				else
 					vector[idxCnt].push(0);
 			}
 		}
 	}
-	//console.log(vector);
-	newvector.push(vector);
-	return newvector;
-	
+	return vector;
 }
+
+function portExtractor ( dataList ) {
+	var srcList = [], dstList = [];
+	dataList.forEach(function ( data, dataCount ) {
+		srcList.push(new PortObject(data['listOrder'], data['src_port']));
+		dstList.push(new PortObject(data['listOrder'], data['dest_port']));
+	});
+	return [srcList, dstList];
+}
+
+// function putvector(ruleList)
+// {	//console.log(ruleList);
+// 	var vector = [],newvector=[];
+// 	var spaceCnt = -1;
+// 	var maxSpace = 30;
+// 	for ( var ruleCnt = 0; ruleCnt < ruleList.length; ruleCnt++ ) {
+// 		if ( ruleCnt % maxSpace == 0 ) spaceCnt++;
+// 		for ( var idxCnt = 0; idxCnt < 65535; idxCnt++ ) {//65536
+// 			vector[idxCnt] = vector[idxCnt] || [];
+// 			if ( ruleCnt % maxSpace != 0 ) {
+// 				if ( ( idxCnt >= ruleList[ruleCnt]['min_port'] ) && ( idxCnt <= ruleList[ruleCnt]['max_port'] ) )
+// 					vector[idxCnt][spaceCnt] = ( vector[idxCnt][spaceCnt] * 2 ) + 1;
+// 				else 
+// 					vector[idxCnt][spaceCnt] = vector[idxCnt][spaceCnt] * 2;
+// 			} else {
+// 				if ( ( idxCnt >= ruleList[ruleCnt]['min_port'] ) && ( idxCnt <= ruleList[ruleCnt]['max_port'] ) )
+// 					vector[idxCnt].push(1);
+// 				else
+// 					vector[idxCnt].push(0);
+// 			}
+// 		}
+// 	}
+// 	//console.log(vector);
+// 	newvector.push(vector);
+// 	return newvector;
+	
+// }
 
 
 function inputSrcPortConvert( dataList ) 
