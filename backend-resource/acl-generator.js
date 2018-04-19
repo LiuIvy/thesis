@@ -81,9 +81,11 @@ function ruleGenerator ( aclObject, geneInfo, ruleNumber=25, rangeSize=0 ) {
 			cmd += ` eth${policy.interface}`;
 			cmd += ` -p tcp`;
 			cmd += ` -s ${ipRandomization(policy.src_ip)}`;
+			//cmd += ` -s 140.134.30.55/16`;
 			if ( src_port )
 				cmd += ` --sport ${portRandomization()}`;
 			cmd += ` -d ${ipRandomization(policy.dest_ip)}`;
+			//cmd += ` -d 140.134.30.88/16`;
 			if ( dest_port )
 				cmd += ` --dport ${portRandomization()}`;
 
@@ -145,7 +147,7 @@ function ruleGenerator ( aclObject, geneInfo, ruleNumber=25, rangeSize=0 ) {
 		function portRandomization()
 		{
 			var portvalue;
-			var port = [randomValue(0, 65535), randomValue(0, 65535)];
+			var port = [randomValue(0, 10), randomValue(0, 10)]; //(0,65535)
 			var min_port = port[0] < port[1] ? port[0] : port[1];
 			var max_port = port[0] > port[1] ? port[0] : port[1];
 			return `${min_port}:${max_port}` ;

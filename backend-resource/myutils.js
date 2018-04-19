@@ -107,6 +107,14 @@ function AddressPrefixObject ( ipdata ) {
 
 	// return this;
 }
+
+function PortObject( listOrder, portData ){
+	var [min,max] = portData.trim().split(':');
+	this.listOrder =listOrder;
+	this.min = min;
+	this.max = max;
+}
+
 function PortSplit(portdata)
 {	
 	let [minport, maxport] = portdata.trim().split(':');

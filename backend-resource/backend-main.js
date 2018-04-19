@@ -800,7 +800,8 @@ function createAnomalyChart ( event ) {
 	$(`#tab-${nodeName} span#src-range`).text(`${ipConvertor(this.xData[0])} / ${block['parameter']['nodeLevel'] - 1}`);
 	$(`#tab-${nodeName} span#dest-range`).text(`${ipConvertor(this.yData[0][0])} / ${block['parameter']['nodeLevel'] - 1}`);
 	$(`<table id="path-table" class="table table-bordered table-hover"></table>`).appendTo(`#tab-${nodeName} div#path-data`);
-	depictportResult(this.index);
+	
+	depictportResult(this.index,nodeName);
 
 	_.each(block['routeObject'], function ( flagRoute, flagKey ) {
 		let flagKeyID;
@@ -1025,7 +1026,7 @@ function createAnomalyChart ( event ) {
 }
 
 
-function depictportResult (thisindex) 
+function depictportResult (thisindex,firewall) 
 {
 	if ( $('#page-body').hasClass('hidden') ) 
 		$('#page-body').removeClass('hidden');
@@ -1034,106 +1035,68 @@ function depictportResult (thisindex)
 	
 	let showingNodeCount = 0;
 	
-
+	
 	Object.keys(myObject['aclObject']).forEach(function ( nodeName, nodeNameCount ) {
-		let curNode = myObject['aclObject'][nodeName];
-		let portBlock = curNode['ARARTree']['leafList'][thisindex];
-		
-		var startTime = process.hrtime();
-		var portExtract = portExtractor(portBlock['ruleList']);
-		// console.log('portExtract', portExtract);
+		if( firewall==nodeName ){
+			let curNode = myObject['aclObject'][nodeName];
+			let portBlock = curNode['ARARTree']['leafList'][thisindex];
+			
+			var portExtract = portExtractor(portBlock['ruleList']);
+			// console.log('portExtract', portExtract);
 
-		var portVector = [putVector(portExtract[0]), putVector(portExtract[1])];
-		// console.log('portVector', portVector);
+			var portVector = [putVector(portExtract[0]), putVector(portExtract[1])];
+			console.log('portVector', portVector);
+			
 
-		var mergedVector = [ [], [] ];
-		for (var j = 0; j < mergedVector.length; j++) {
-			for (var i = 0; i < (portVector[j].length - 1); i++) {
-				// console.log(i, mergedVector[j]);
-				if ( _.isEmpty(mergedVector[j]) ) 
-					mergedVector[j].push({ 'min' : i, 'max' : i, 'data' : portVector[j][i] });
-				if ( _.isEqual(portVector[j][i], portVector[j][i+1]) )
-					mergedVector[j][mergedVector[j].length-1]['max'] = i + 1;
-				else
-					mergedVector[j].push({ 'min' : i + 1, 'max' : i + 1, 'data' : portVector[j][i+1] });
-			}
-		}
-		console.log('mergedVector:', mergedVector);
-		portVector = undefined;
-
-		var nunzero=[];
-		var andVector=[];
-		for(var i = 0 ; i < mergedVector[0].length ; i++){
-			andVector[i]=andVector[i]||[];	
-			for(var j = 0 ; j < mergedVector[1].length ; j++){
-				andVector[i][j] = andVector[i][j] || [];
-				for(var z=0 ; z < mergedVector[0][i]['data'].length ; z++){
-					//console.log('i',i,'j',j,'z',z);
-					andVector[i][j][z] = mergedVector[0][i][z] & mergedVector[1][j][z];
-
-					if(andVector[i][j][z]>1)
-						nunzero.push({ 'i' : i, 'j' : j, 'z' : z });
-				}
-				//console.log('mergedVector',mergedVector[0][i]);	
-			}
-		}
-		//console.log('AndVector',andVector);
-		//console.log('AndVector',andVector[andVector.length-1][andVector[andVector.length-1].length-1][andVector[andVector.length-1][andVector[andVector.length-1].length-1].length-1]);
-		console.log('nunzero',nunzero);
+			var mergedVector=merge(portVector);
+			portVector = undefined;
+			var nunZero=and(mergedVector);
+			var bitOrdCount=bitOrder(nunZero);
 
 
-		var createTime = process.hrtime(startTime);
-		console.log(`port excute: ` + (createTime[0] + createTime[1]/1e9));
 
 
-		/********************************************************************************/
 
-		// var srctestblock,destestblock;
-		// srctestblock=inputSrcPortConvert(portBlock['ruleList']);
-		// //console.log(srctestblock);
+			// var startTime = process.hrtime();
 
-		// destestblock=inputDesPortConvert(portBlock['ruleList']);
-		//console.log(destestblock);
-		
-		// var srcvector,desvector;
-		// srcvector=putvector(srctestblock);
-		// desvector=putvector(destestblock);
-		
+			// var createTime = process.hrtime(startTime);
+			// console.log(`port excute: ` + (createTime[0] + createTime[1]/1e9));
 
-		if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
-		 	showingNodeCount++;
-		 	return;
-		 }
-		let chartID = `chart-${thisindex}`;
-		let $tab = `<li id="li-${thisindex}"><a data-toggle="tab" href="#tab-${thisindex}">block${thisindex}</a></li>`;
-		// let $chart = `<div id="tab-${nodeName}" class="tab-pane fade"><div id="${chartID}" style="height:400px"></div></div>`;
-		let $chart = `<div id="tab-${thisindex}" class="tab-pane fade">
+
+			/********************************************************************************/
+	
+			if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
+			 	showingNodeCount++;
+			 	return;
+			 }
+			let chartID = `chart-${thisindex}`;
+			let $tab = `<li id="li-${thisindex}"><a data-toggle="tab" href="#tab-${thisindex}">block${thisindex}</a></li>`;
+			// let $chart = `<div id="tab-${nodeName}" class="tab-pane fade"><div id="${chartID}" style="height:400px"></div></div>`;
+			let $chart = `<div id="tab-${thisindex}" class="tab-pane fade">
+							<div class="row"> 
+								<div class="col-xs-12"> 
+									<div id="${chartID}" style="height:400px"></div> 
+								</div> 
+							</div>
+						</div>
+						<div id="tab-${thisindex}" class="tab-pane fade">
 						<div class="row"> 
-							<div class="col-xs-12"> 
-								<div id="${chartID}" style="height:400px"></div> 
-							</div> 
+								<div class="col-xs-12" id="block-content"></div> 
+							</div>
 						</div>
-						
-					</div>
-					<div id="tab-${thisindex}" class="tab-pane fade">
-					<div class="row"> 
-							<div class="col-xs-12" id="block-content"></div> 
-						</div>
-					</div>
-					`;
+						`;
+			//console.log(`${thisindex}`);
+			$($tab).appendTo('#port-chart-tabs');
+			$($chart).appendTo('#port-tab-content');
 
-		$($tab).appendTo('#port-chart-tabs');
-		$($chart).appendTo('#port-tab-content');
-
-		if ( nodeNameCount === showingNodeCount ) {
-			$(`#tab-${thisindex}`).addClass('in active');
-			$(`#li-${thisindex}`).addClass('active');
-		}
-
-		createHighcharts(chartID, curNode['ARARTree']['leafList']);
-	});
-	// $( "#tabs" ).tabs();
-
+			if ( nodeNameCount === showingNodeCount ) {
+				$(`#tab-${thisindex}`).addClass('in active');
+				$(`#li-${thisindex}`).addClass('active');
+			}
+			createHighcharts(chartID, curNode['ruleList']);
+			// $( "#tabs" ).tabs();		
+		}	
+	});		
 	function createHighcharts ( chartID, dataList ) {
 		//console.log(dataList);
 		let chart = {
@@ -1146,15 +1109,15 @@ function depictportResult (thisindex)
 				footerFromat: '</table></div>',
 				pointFormatter: function () {
 					var str =	`<tr><td>Src:&#160;</td>\
-									<td>${ipConvertor(this.series.xData[0])}</td>\
+									<td>${this.series.xData[0]}</td>\
 									<td>&#160;~&#160;</td>\
-									<td>${ipConvertor(this.series.xData[1])}</td>\
+									<td>${this.series.xData[1]}</td>\
 								</tr>\
 								<tr>\
 									<td>Dest:&#160;</td>\
-									<td>${ipConvertor(this.low)}</td>\
+									<td>${(this.low)}</td>\
 									<td>&#160;~&#160;</td>\
-									<td>${ipConvertor(this.high)}</td>\
+									<td>${(this.high)}</td>\
 								</tr>`;
 					
 					return str;
@@ -1170,19 +1133,19 @@ function depictportResult (thisindex)
 					lineWidth: 0.5,
 					marker: { enabled: false, states: { hover: { enabled: false } } },
 					cursor: 'pointer',
-					events: { click: createAnomalyChart },
+					// events: { click: createAnomalyChart },
 				}
 			},
 			xAxis: {
 				title: "Source Address",
-				//labels: { formatter: function () { return ipConvertor(this.value); } },
+				labels: { formatter: function () { return this.value; } },
 				floor: 0,
 				ceiling: 4294967295,
 			},
 
 			yAxis: {
 				title: "Destination Address",
-				//labels: { formatter: function () { return ipConvertor(this.value); } },
+				labels: { formatter: function () { return this.value; } },
 				floor: 0,
 				ceiling: 4294967295,
 			}
@@ -1195,21 +1158,20 @@ function depictportResult (thisindex)
 		let seriesList = [];
 
 		dataList.forEach(function ( data, dataCount ) {
-			let series, xBase, yBase, xMin, xMax, yMin, yMax;
-			let para = data['parameter'];
-			let lvl = para['nodeLevel'];
-			let maxMask = 32;
-
-			xMin = ((~(1 << (maxMask - lvl)) & para['rsvSrc']) | para['baseSrc']) >>> 0;
-			yMin = ((~(1 << (maxMask - lvl)) & para['rsvDest']) | para['baseDest']) >>> 0;
-			xMax = ((((1 << (maxMask - lvl)) - 1) | para['rsvSrc']) | para['baseSrc']) >>> 0;
-			yMax = ((((1 << (maxMask - lvl)) - 1) | para['rsvDest']) | para['baseDest']) >>> 0;
+			let series, xMin, xMax, yMin, yMax;
+			let src = new PortObject(data['listOrder'], data['src_port']);
+			let dst = new PortObject(data['listOrder'], data['dest_port']);
+			
+			xMin = src['min'];
+			yMin = dst['min'];
+			xMax = src['max'];
+			yMax = dst['max'];
 
 			series = { 
-				name: `block ${dataCount}`, color: '#f45b5b',
+				name: `block ${dataCount}`,
 				data: [{ x: xMin, low: yMin, high: yMax }, { x: xMax, low: yMin, high: yMax }],
 			};
-			if ( !data['anomalyInfo']['anomaly'] ) { series.color = '#90ed7d'; }
+			
 			seriesList.push(series);
 		});
 		
@@ -1222,10 +1184,10 @@ function putVector ( ruleList ) {
 	//console.log(ruleList);
 	var vector = [];
 	var spaceCnt = -1;
-	var maxSpace = 30;
+	var maxSpace = 5; //30
 	for ( var ruleCnt = 0; ruleCnt < ruleList.length; ruleCnt++ ) {
 		if ( ruleCnt % maxSpace == 0 ) spaceCnt++;
-		for ( var idxCnt = 0; idxCnt < 65535; idxCnt++ ) {//65536
+		for ( var idxCnt = 0; idxCnt < 10; idxCnt++ ) {//65536
 			vector[idxCnt] = vector[idxCnt] || [];
 			if ( ruleCnt % maxSpace != 0 ) {
 				if ( ( idxCnt >= ruleList[ruleCnt]['min'] ) && ( idxCnt <= ruleList[ruleCnt]['max'] ) )
@@ -1252,77 +1214,103 @@ function portExtractor ( dataList ) {
 	return [srcList, dstList];
 }
 
-// function putvector(ruleList)
-// {	//console.log(ruleList);
-// 	var vector = [],newvector=[];
-// 	var spaceCnt = -1;
-// 	var maxSpace = 30;
-// 	for ( var ruleCnt = 0; ruleCnt < ruleList.length; ruleCnt++ ) {
-// 		if ( ruleCnt % maxSpace == 0 ) spaceCnt++;
-// 		for ( var idxCnt = 0; idxCnt < 65535; idxCnt++ ) {//65536
-// 			vector[idxCnt] = vector[idxCnt] || [];
-// 			if ( ruleCnt % maxSpace != 0 ) {
-// 				if ( ( idxCnt >= ruleList[ruleCnt]['min_port'] ) && ( idxCnt <= ruleList[ruleCnt]['max_port'] ) )
-// 					vector[idxCnt][spaceCnt] = ( vector[idxCnt][spaceCnt] * 2 ) + 1;
-// 				else 
-// 					vector[idxCnt][spaceCnt] = vector[idxCnt][spaceCnt] * 2;
-// 			} else {
-// 				if ( ( idxCnt >= ruleList[ruleCnt]['min_port'] ) && ( idxCnt <= ruleList[ruleCnt]['max_port'] ) )
-// 					vector[idxCnt].push(1);
-// 				else
-// 					vector[idxCnt].push(0);
-// 			}
-// 		}
-// 	}
-// 	//console.log(vector);
-// 	newvector.push(vector);
-// 	return newvector;
-	
-// }
+function merge (portVector){
+	var mergedVector = [ [], [] ];
+	//console.log('portVector',portVector);
+	//console.log('portVector[0] length',portVector[0].length);
 
-
-function inputSrcPortConvert( dataList ) 
-{
-	let newDataList = [];
-	// console.log(dataList);
-	for (let dataCount=0; dataCount<dataList.length; dataCount++) {
-		let data = dataList[dataCount];
-		let newData, src_port, dest_port, flag = false;
-
-		src_port = new PortSplit(data['src_port']);
-		//dest_port = new PortSplit(data['dest_port']);
-		//console.log(src_port,dest_port);
-		newData = new PortList(data['listOrder'],src_port['portMinNumber'],src_port['portMaxNumber']);
-		//console.log(newData);
-		newDataList.push(newData);
+	for (var j = 0; j < mergedVector.length; j++) {
+		for (var i = 0; i < (portVector[j].length - 1); i++) {
+			//console.log(i, mergedVector[j]);
+			if ( _.isEmpty(mergedVector[j]) ) 
+				mergedVector[j].push({ 'min' : i, 'max' : i, 'data' : portVector[j][i] });
+			if ( _.isEqual(portVector[j][i], portVector[j][i+1]) )
+				mergedVector[j][mergedVector[j].length-1]['max'] = i + 1;
+			else
+				mergedVector[j].push({ 'min' : i + 1, 'max' : i + 1, 'data' : portVector[j][i+1] });
+		}
 	}
-	return newDataList;
+	console.log('mergedVector:', mergedVector);
+	return mergedVector;
 }
-function inputDesPortConvert( dataList ) 
-{
-	let newDataList = [];
-	// console.log(dataList);
-	for (let dataCount=0; dataCount<dataList.length; dataCount++) {
-		let data = dataList[dataCount];
-		let newData, src_port, dest_port, flag = false;
 
-		//src_port = new PortSplit(data['src_port']);
-		dest_port = new PortSplit(data['dest_port']);
-		//console.log(src_port,dest_port);
-		newData = new PortList(data['listOrder'],dest_port['portMinNumber'],dest_port['portMaxNumber']);
-		//console.log(newData);
-		newDataList.push(newData);
+function and(mergedVector){
+	var nunZero = [];
+	var andVector = [];
+	var count = [];
+
+	for(var i = 0 ; i < mergedVector[0].length ; i++){ //mergedVector[0]:Src
+		andVector[i]=andVector[i]||[];	
+		for(var j = 0 ; j < mergedVector[1].length ; j++){ //mergedVector[1]:dst
+			andVector[i][j] = andVector[i][j] || [];
+			for(var z=0 ; z < mergedVector[0][i]['data'].length ; z++){
+				//console.log('i',i,'j',j,'z',z);
+
+				andVector[i][j][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];
+				//console.log((andVector[i][j][z]).toString(2));
+				//count = bitcount(andVector[i][j][z]);
+
+				//if( count > 1 ){			
+					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z]});
+					console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);			
+					
+				//}
+					
+			console.log('nunZero',nunZero);
+			}
+			//console.log('mergedVector',mergedVector[0][i]);	
+		}
 	}
-	return newDataList;
+	//console.log('AndVector',andVector); 
+	return nunZero;
 }
+
+function bitOrder(nunZero){
+	var bitnumber=[];
+	var newnunZero;
+	console.log('nunZero',nunZero);
+	for(var j = 0 ; j < nunZero.length ; j++){
+		bitnumber[j]=bitnumber[j] || [];
+		
+		nunZero[j]['andVector']=(nunZero[j]['andVector']).toString(2);
+
+		for (var i = nunZero[j]['andVector'].length ; -1 < i ; i--) {
+			//console.log(nunZero[j]['andVector']);
+
+			newnunZero = nunZero[j]['andVector']|=1;
+			//console.log('newnunZero|1,newnunZero',newnunZero,nunZero[j]['andVector']);
+			if( newnunZero == nunZero[j]['andVector']){
+				//console.log('newnunZero , nunZero[j]',newnunZero,nunZero[j]['andVector']);
+				bitnumber[j].push({'bitnumber':i-1});
+				nunZero[j]['andVector']>>=1;
+			}			
+			else
+				nunZero[j]['andVector']>>=1;
+		}		
+	}
+	//console.log(123);
+	console.log('bitnumber',bitnumber);
+	return bitnumber;
+
+}
+
+function bitcount ( n ) {
+	//console.log('n',n);
+	var count = 0;
+	var n;
+	while( n ) {
+		count++;
+		n &= ( n - 1);
+	}
+	return count;
+}
+
 function PortList ( listOrder, min_port,max_port) {
 	this.listOrder = listOrder;
 	this.min_port = min_port;
 	this.max_port = max_port;
 
 }
-
-
 
 function depictResult () {
 	if ( $('#page-body').hasClass('hidden') ) $('#page-body').removeClass('hidden');
