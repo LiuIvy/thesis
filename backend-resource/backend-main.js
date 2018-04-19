@@ -1048,7 +1048,7 @@ function depictportResult (thisindex,firewall)
 			console.log('portVector', portVector);
 			
 
-/********************************************************************************
+
 			var mergedVector = [ [], [] ];
 			for (var j = 0; j < mergedVector.length; j++) {
 				for (var i = 0; i < (portVector[j].length - 1); i++) {
@@ -1091,7 +1091,7 @@ function depictportResult (thisindex,firewall)
 			console.log('nunzero',nunzero);
 
 
-*****************************************************************************************/
+
 
 
 			// var startTime = process.hrtime();
