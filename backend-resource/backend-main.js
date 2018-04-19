@@ -1048,7 +1048,7 @@ function depictportResult (thisindex,firewall)
 			console.log('portVector', portVector);
 			
 
-
+/**************************************************************************************/
 			var mergedVector = [ [], [] ];
 			for (var j = 0; j < mergedVector.length; j++) {
 				for (var i = 0; i < (portVector[j].length - 1); i++) {
@@ -1089,23 +1089,24 @@ function depictportResult (thisindex,firewall)
 			}
 			console.log('AndVector',andVector); 
 			console.log('nunzero',nunzero);
+			console.log(`${JSON.stringify(nunzero)}`)
+/********************************************************************************/
 
-
-
-
-
-			// var startTime = process.hrtime();
-
+			//var startTime = process.hrtime();
 			// var createTime = process.hrtime(startTime);
 			// console.log(`port excute: ` + (createTime[0] + createTime[1]/1e9));
 
 
-			
-			// var mergedVector=merge(portVector);
-			// portVector = undefined;
-			// var nunZero=and(mergedVector);
-			// var bitOrdCount=bitOrder(nunZero);
-	
+/***************************************************************/			
+			var mergedVector=merge(portVector);
+			portVector = undefined;
+			var retNunzero=and(mergedVector);
+			console.log('retNunzero',retNunzero);
+			console.log(`${JSON.stringify(retNunzero)}`);
+
+/*****************************************************************/
+			//var bitOrdCount=bitOrder(nunZero);
+
 			if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
 			 	showingNodeCount++;
 			 	return;
@@ -1292,15 +1293,15 @@ function and(mergedVector){
 				count = bitcount(andVector[i][j][z]);
 
 				if( count > 1 ){			
-					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z]});
-					console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);								
+					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z],'count':count});
+					//console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);								
 				}					
 			}
 			//console.log('mergedVector',mergedVector[0][i]);	
 		}
 	}
-	console.log('AndVector',andVector); 
-	console.log('nunZero',nunZero);
+	console.log('call AndVector',andVector); 
+	console.log('call nunZero',nunZero);
 	return nunZero;
 }
 
