@@ -1048,13 +1048,50 @@ function depictportResult (thisindex,firewall)
 			console.log('portVector', portVector);
 			
 
-			var mergedVector=merge(portVector);
+/********************************************************************************
+			var mergedVector = [ [], [] ];
+			for (var j = 0; j < mergedVector.length; j++) {
+				for (var i = 0; i < (portVector[j].length - 1); i++) {
+					//console.log(i, mergedVector[j]);
+					if ( _.isEmpty(mergedVector[j]) ) 
+						mergedVector[j].push({ 'min' : i, 'max' : i, 'data' : portVector[j][i] });
+					if ( _.isEqual(portVector[j][i], portVector[j][i+1]) )
+						mergedVector[j][mergedVector[j].length-1]['max'] = i + 1;
+					else
+						mergedVector[j].push({ 'min' : i + 1, 'max' : i + 1, 'data' : portVector[j][i+1] });
+				}
+			}
+			console.log('mergedVector:', mergedVector);
 			portVector = undefined;
-			var nunZero=and(mergedVector);
-			var bitOrdCount=bitOrder(nunZero);
+
+			var nunzero = [];
+			var andVector = [];
+			var count = [];
+
+			for(var i = 0 ; i < mergedVector[0].length ; i++){ //mergedVector[0]:Src
+				andVector[i]=andVector[i]||[];	
+				for(var j = 0 ; j < mergedVector[1].length ; j++){ //mergedVector[1]:dst
+					andVector[i][j] = andVector[i][j] || [];
+					for(var z=0 ; z < mergedVector[0][i]['data'].length ; z++){
+						//console.log('i',i,'j',j,'z',z);
+
+						andVector[i][j][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];
+
+						count = bitcount(andVector[i][j][z]);
+
+						if( count > 1 ){						
+							nunzero.push({ 'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z],'count':count});
+						}
+							
+					}
+					//console.log('mergedVector',mergedVector[0][i]);	
+				}
+			}
+			console.log('AndVector',andVector); 
+			console.log('nunzero',nunzero);
 
 
-
+*****************************************************************************************/
 
 
 			// var startTime = process.hrtime();
@@ -1063,7 +1100,11 @@ function depictportResult (thisindex,firewall)
 			// console.log(`port excute: ` + (createTime[0] + createTime[1]/1e9));
 
 
-			/********************************************************************************/
+			
+			// var mergedVector=merge(portVector);
+			// portVector = undefined;
+			// var nunZero=and(mergedVector);
+			// var bitOrdCount=bitOrder(nunZero);
 	
 			if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
 			 	showingNodeCount++;
