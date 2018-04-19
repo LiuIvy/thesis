@@ -1252,10 +1252,8 @@ function and(mergedVector){
 
 				if( count > 1 ){			
 					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z]});
-					console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);			
-					
-				}
-					
+					console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);								
+				}					
 			}
 			//console.log('mergedVector',mergedVector[0][i]);	
 		}
