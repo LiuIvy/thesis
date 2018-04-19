@@ -1247,21 +1247,21 @@ function and(mergedVector){
 				//console.log('i',i,'j',j,'z',z);
 
 				andVector[i][j][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];
-				//console.log((andVector[i][j][z]).toString(2));
-				//count = bitcount(andVector[i][j][z]);
+				
+				count = bitcount(andVector[i][j][z]);
 
-				//if( count > 1 ){			
+				if( count > 1 ){			
 					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z]});
 					console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);			
 					
-				//}
+				}
 					
-			console.log('nunZero',nunZero);
 			}
 			//console.log('mergedVector',mergedVector[0][i]);	
 		}
 	}
-	//console.log('AndVector',andVector); 
+	console.log('AndVector',andVector); 
+	console.log('nunZero',nunZero);
 	return nunZero;
 }
 
