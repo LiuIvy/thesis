@@ -1088,15 +1088,21 @@ function depictportResult (thisindex,firewall)
 			}
 
 			console.log('AndVector',andVector); 
-			console.log('nunzero',nunzero);
-			console.log(`${JSON.stringify(nunzero)}`);
+			// console.log('nunzero',nunzero);
+			// console.log(`${JSON.stringify(nunzero)}`);
 
 			var retMergedVector = merge(portVector);
 			var retNunzero = and(retMergedVector);
+			
 			console.log('retNunzero', retNunzero);
 			console.log(`${JSON.stringify(retNunzero)}`);
 
-			console.log(`_.isEqual(retNunzero, nunzero): ${_.isEqual(retNunzero, nunzero)} `);
+			//console.log(`_.isEqual(retNunzero, nunzero): ${_.isEqual(retNunzero, nunzero)} `);
+			var retNunzeroBit = bitOrder(retNunzero[0]);
+			console.log('retNunzeroBit', retNunzeroBit);
+			var retlessOneBit = bitOrder(retNunzero[1]);
+			console.log('retlessOneBit', retlessOneBit);
+
 
 	
 			if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
@@ -1264,7 +1270,7 @@ function merge (portVector){
 				mergedVector[j].push({ 'min' : i + 1, 'max' : i + 1, 'data' : portVector[j][i+1] });
 		}
 	}
-	console.log('mergedVector:', mergedVector);
+	//console.log('mergedVector:', mergedVector);
 	return mergedVector;
 }
 
@@ -1272,6 +1278,7 @@ function and(mergedVector){
 	var nunZero = [];
 	var andVector = [];
 	var count = [];
+	var lessOne = [];
 
 	for(var i = 0 ; i < mergedVector[0].length ; i++){ //mergedVector[0]:Src
 		andVector[i]=andVector[i]||[];	
@@ -1287,41 +1294,46 @@ function and(mergedVector){
 				if( count > 1 ){			
 					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z], count: count});
 					// console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);								
+				}else{
+
+					lessOne.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z]});
 				}					
 			}
 			//console.log('mergedVector',mergedVector[0][i]);	
 		}
 	}
-	// console.log('AndVector',andVector); 
+	//console.log('call AndVector',andVector); 
 	// console.log('nunZero',nunZero);
-	return nunZero;
+	return [nunZero,lessOne];
 }
 
-function bitOrder(nunZero){
-	var bitnumber=[];
+function bitOrder(retNunzero){
+	var bitnumber =[];
 	var newnunZero;
-	console.log('nunZero',nunZero);
-	for(var j = 0 ; j < nunZero.length ; j++){
+	var binretNunzero;
+	//console.log(`${JSON.stringify(retNunzero)}`);
+
+	for(var j = 0 ; j < retNunzero.length ; j++){
 		bitnumber[j]=bitnumber[j] || [];
 		
-		nunZero[j]['andVector']=(nunZero[j]['andVector']).toString(2);
+		binretNunzero=(retNunzero[j]['andVector']).toString(2);
 
-		for (var i = nunZero[j]['andVector'].length ; -1 < i ; i--) {
+		for (var i = binretNunzero.length -1 ; -1 < i ; i--) {
 			//console.log(nunZero[j]['andVector']);
+			//console.log('NunOR',(retNunzero[j]['andVector']).toString(2));
 
-			newnunZero = nunZero[j]['andVector']|=1;
-			//console.log('newnunZero|1,newnunZero',newnunZero,nunZero[j]['andVector']);
-			if( newnunZero == nunZero[j]['andVector']){
+			newnunZero = retNunzero[j]['andVector'] | 0b1;
+			//console.log('    OR',(newnunZero).toString(2));
+			if( newnunZero == retNunzero[j]['andVector']){
 				//console.log('newnunZero , nunZero[j]',newnunZero,nunZero[j]['andVector']);
-				bitnumber[j].push({'bitnumber':i-1});
-				nunZero[j]['andVector']>>=1;
+				bitnumber[j].push({'bitnumber':i});
+				retNunzero[j]['andVector']>>=1;
 			}			
 			else
-				nunZero[j]['andVector']>>=1;
+				retNunzero[j]['andVector']>>=1;
 		}		
 	}
-	//console.log(123);
-	console.log('bitnumber',bitnumber);
+	//console.log('bitnumber',bitnumber);
 	return bitnumber;
 
 }
