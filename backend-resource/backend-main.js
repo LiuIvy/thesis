@@ -1040,6 +1040,7 @@ function depictportResult (thisindex,firewall)
 		if( firewall==nodeName ){
 			let curNode = myObject['aclObject'][nodeName];
 			let portBlock = curNode['ARARTree']['leafList'][thisindex];
+			console.log('portBlock',portBlock);
 			
 			var portExtract = portExtractor(portBlock['ruleList']);
 			// console.log('portExtract', portExtract);
@@ -1094,14 +1095,17 @@ function depictportResult (thisindex,firewall)
 			var retMergedVector = merge(portVector);
 			var retNunzero = and(retMergedVector);
 			
-			console.log('retNunzero', retNunzero);
-			console.log(`${JSON.stringify(retNunzero)}`);
+			//console.log('retNunzero', retNunzero);
+			//console.log(`${JSON.stringify(retNunzero)}`);
 
 			//console.log(`_.isEqual(retNunzero, nunzero): ${_.isEqual(retNunzero, nunzero)} `);
+
 			var retNunzeroBit = bitOrder(retNunzero[0]);
 			console.log('retNunzeroBit', retNunzeroBit);
 			var retlessOneBit = bitOrder(retNunzero[1]);
 			console.log('retlessOneBit', retlessOneBit);
+
+			//let portLeaf = 
 
 
 	
@@ -1224,10 +1228,10 @@ function putVector ( ruleList ) {
 	//console.log(ruleList);
 	var vector = [];
 	var spaceCnt = -1;
-	var maxSpace = 5; //30
+	var maxSpace = 30; //30
 	for ( var ruleCnt = 0; ruleCnt < ruleList.length; ruleCnt++ ) {
 		if ( ruleCnt % maxSpace == 0 ) spaceCnt++;
-		for ( var idxCnt = 0; idxCnt < 10; idxCnt++ ) {//65536
+		for ( var idxCnt = 0; idxCnt < 65535; idxCnt++ ) {//65536
 			vector[idxCnt] = vector[idxCnt] || [];
 			if ( ruleCnt % maxSpace != 0 ) {
 				if ( ( idxCnt >= ruleList[ruleCnt]['min'] ) && ( idxCnt <= ruleList[ruleCnt]['max'] ) )

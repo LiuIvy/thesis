@@ -147,7 +147,7 @@ function ruleGenerator ( aclObject, geneInfo, ruleNumber=25, rangeSize=0 ) {
 		function portRandomization()
 		{
 			var portvalue;
-			var port = [randomValue(0, 10), randomValue(0, 10)]; //(0,65535)
+			var port = [randomValue(0, 65535), randomValue(0, 65535)]; //(0,65535)
 			var min_port = port[0] < port[1] ? port[0] : port[1];
 			var max_port = port[0] > port[1] ? port[0] : port[1];
 			return `${min_port}:${max_port}` ;
