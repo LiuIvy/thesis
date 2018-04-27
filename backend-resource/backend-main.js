@@ -1043,69 +1043,33 @@ function depictportResult (thisindex,firewall)
 			console.log('portBlock',portBlock);
 			
 			var portExtract = portExtractor(portBlock['ruleList']);
-			// console.log('portExtract', portExtract);
+
 
 			var portVector = [putVector(portExtract[0]), putVector(portExtract[1])];
-			console.log('portVector', portVector);
-			
-
-
-			var mergedVector = [ [], [] ];
-			for (var j = 0; j < mergedVector.length; j++) {
-				for (var i = 0; i < (portVector[j].length - 1); i++) {
-					//console.log(i, mergedVector[j]);
-					if ( _.isEmpty(mergedVector[j]) ) 
-						mergedVector[j].push({ 'min' : i, 'max' : i, 'data' : portVector[j][i] });
-					if ( _.isEqual(portVector[j][i], portVector[j][i+1]) )
-						mergedVector[j][mergedVector[j].length-1]['max'] = i + 1;
-					else
-						mergedVector[j].push({ 'min' : i + 1, 'max' : i + 1, 'data' : portVector[j][i+1] });
+			var exchgPortExtract = [putVector(portExtract[1]), putVector(portExtract[0])];
+			var data123 = [[],[]];
+			for (var i = 0; i < portVector.length; i++) {
+				for (var j = 0; j < portVector[i].length; j++) {
+					data123[i].push(portVector[i][j]);
+					data123[i].push(exchgPortExtract[i][j]);
 				}
 			}
-			console.log('mergedVector:', mergedVector);
-
-			var nunzero = [];
-			var andVector = [];
-			var count = [];
-
-			for(var i = 0 ; i < mergedVector[0].length ; i++){ //mergedVector[0]:Src
-				andVector[i]=andVector[i]||[];	
-				for(var j = 0 ; j < mergedVector[1].length ; j++){ //mergedVector[1]:dst
-					andVector[i][j] = andVector[i][j] || [];
-					for(var z=0 ; z < mergedVector[0][i]['data'].length ; z++){
-						//console.log('i',i,'j',j,'z',z);
-
-						andVector[i][j][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];
-
-						count = bitcount(andVector[i][j][z]);
-
-						if( count > 1 ){						
-							nunzero.push({ 'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z],'count':count});
-						}
-							
-					}
-					//console.log('mergedVector',mergedVector[0][i]);	
-				}
-			}
-
-			console.log('AndVector',andVector); 
-			// console.log('nunzero',nunzero);
-			// console.log(`${JSON.stringify(nunzero)}`);
-
-			var retMergedVector = merge(portVector);
-			var retNunzero = and(retMergedVector);
 			
-			//console.log('retNunzero', retNunzero);
-			//console.log(`${JSON.stringify(retNunzero)}`);
+			//console.log('portVector', portVector);
+			
 
+			// console.log('retNunzero', retNunzero);
+			// console.log(`${JSON.stringify(retNunzero)}`);
 			//console.log(`_.isEqual(retNunzero, nunzero): ${_.isEqual(retNunzero, nunzero)} `);
 
-			var retNunzeroBit = bitOrder(retNunzero[0]);
+			var retMergedVector = merge(data123);
+			console.log('retMergedVector',retMergedVector);
+			var retAndvector = and(retMergedVector);
+			
+			var retNunzeroBit = bitOrder(retAndvector, portBlock['ruleList'] ,curNode['ruleList']);
 			console.log('retNunzeroBit', retNunzeroBit);
-			var retlessOneBit = bitOrder(retNunzero[1]);
-			console.log('retlessOneBit', retlessOneBit);
-
-			//let portLeaf = 
+			//var retlessOneBit = bitOrder(retNunzero[1],portBlock);
+			//console.log('retlessOneBit', retlessOneBit);
 
 
 	
@@ -1279,73 +1243,73 @@ function merge (portVector){
 }
 
 function and(mergedVector){
-	var nunZero = [];
 	var andVector = [];
-	var count = [];
-	var lessOne = [];
-
+	let leafList = [];
 	for(var i = 0 ; i < mergedVector[0].length ; i++){ //mergedVector[0]:Src
 		andVector[i]=andVector[i]||[];	
 		for(var j = 0 ; j < mergedVector[1].length ; j++){ //mergedVector[1]:dst
-			andVector[i][j] = andVector[i][j] || [];
+			andVector[i][j] = andVector[i][j] || {'min_src': mergedVector[0][i]['min'],'min_dst':mergedVector[1][j]['min'] ,
+												  'max_src': mergedVector[0][i]['max'],'max_dst':mergedVector[1][j]['max'] ,
+												  'data':[] ,'ruleList':[]};
+
 			for(var z=0 ; z < mergedVector[0][i]['data'].length ; z++){
 				//console.log('i',i,'j',j,'z',z);
-
-				andVector[i][j][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];
-				
-				count = bitcount(andVector[i][j][z]);
-
-				if( count > 1 ){			
-					nunZero.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z], count: count});
-					// console.log( 'i' , i, 'j' , j, 'z',  z ,'andVector',andVector[i][j][z]);								
-				}else{
-
-					lessOne.push( {'i' : i, 'j' : j, 'z' : z ,'andVector':andVector[i][j][z]});
-				}					
+				andVector[i][j]['data'][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];							
 			}
-			//console.log('mergedVector',mergedVector[0][i]);	
+			// console.log('andVector[i][j]',andVector[i][j]);	
 		}
 	}
-	//console.log('call AndVector',andVector); 
-	// console.log('nunZero',nunZero);
-	return [nunZero,lessOne];
+	return andVector;
 }
 
-function bitOrder(retNunzero){
-	var bitnumber =[];
-	var newnunZero;
-	var binretNunzero;
-	//console.log(`${JSON.stringify(retNunzero)}`);
+function bitOrder(andVector,portRuleList,oriRuleList){
 
-	for(var j = 0 ; j < retNunzero.length ; j++){
-		bitnumber[j]=bitnumber[j] || [];
-		
-		binretNunzero=(retNunzero[j]['andVector']).toString(2);
+	let leafList = [];
+	for(var i = 0 ; i < andVector.length ; i++ ) {
+		for (var j = 0; j < andVector[i].length ; j++) {
+			var portRuleCnt = portRuleList.length - 1;
 
-		for (var i = binretNunzero.length -1 ; -1 < i ; i--) {
-			//console.log(nunZero[j]['andVector']);
-			//console.log('NunOR',(retNunzero[j]['andVector']).toString(2));
+			for (var z = andVector[i][j]['data'].length - 1; z >= 0; z--) {
+				var curData = andVector[i][j]['data'][z];
 
-			newnunZero = retNunzero[j]['andVector'] | 0b1;
-			//console.log('    OR',(newnunZero).toString(2));
-			if( newnunZero == retNunzero[j]['andVector']){
-				//console.log('newnunZero , nunZero[j]',newnunZero,nunZero[j]['andVector']);
-				bitnumber[j].push({'bitnumber':i});
-				retNunzero[j]['andVector']>>=1;
-			}			
-			else
-				retNunzero[j]['andVector']>>=1;
-		}		
+				if( z == (andVector[i][j]['data'].length - 1)){
+
+					for(var k = portRuleCnt % 30 ; k >= 0 ; k--){
+						if( (curData | 1) == curData ){
+							//console.log('portRuleList',portRuleCnt,portRuleList[portRuleCnt]);
+							andVector[i][j]['ruleList'].push(oriRuleList[portRuleList[portRuleCnt]['listOrder']]);
+						}
+						curData >>= 1;
+						portRuleCnt--;
+					}
+
+				}else{
+					for(var k = 30 ; k > 0 ; k--){
+						if( (curData | 1) == curData ){
+							//console.log('portRuleList',portRuleCnt,portRuleList[portRuleCnt]);
+							andVector[i][j]['ruleList'].push(oriRuleList[portRuleList[portRuleCnt]['listOrder']]);
+						}
+						curData >>= 1;
+						portRuleCnt--;
+					}
+				}		
+			}
+		}
 	}
-	//console.log('bitnumber',bitnumber);
-	return bitnumber;
-
+	//console.log('andVector',andVector);
+	for(var i = 0 ; i < andVector.length ; i++ ) {
+		for (var j = 0; j < andVector[i].length ; j++) {
+			if( andVector[i][j]['ruleList'].length > 0 )
+				leafList.push(andVector[i][j]);
+		}
+	}
+	console.log('leafList',leafList);
 }
 
 function bitcount ( n ) {
 	//console.log('n',n);
 	var count = 0;
-	var n;
+	// var n;
 	while( n ) {
 		count++;
 		n &= ( n - 1);
