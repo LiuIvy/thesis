@@ -522,8 +522,7 @@ function inputDataConvertor ( dataList ) {
 
 
 function exchangeRuleList ( dataList ) {
-	let newDataList = [];
-
+	let newDataList = [];	
 	for (let dataCount=0; dataCount<dataList.length; dataCount++) {
 		let data = dataList[dataCount];
 		let newData = new RuleObject(data['listOrder'], data['interface'], data['in_out'], data['dest_ip'], data['src_ip'], data['protocol'], data['dest_port'], data['src_port'], data['tcp_flags'], data['action'], true);
