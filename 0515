@@ -1,0 +1,20 @@
+iptables -A INPUT -i eth0 -p tcp -s 1.192.0.0/10 -d 2.0.0.0/9 --sport 20365:32156 --dport 17693:34363 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.0.0.0/10 -d 2.0.0.0/8 --sport 3073:9113 --dport 4747:10074 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.0.0.0/10 -d 2.64.0.0/10 --sport 12:35687 --dport 15733:51923 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.0.0.0/9 -d 2.0.0.0/9 --sport 14716:23614 --dport 31158:58493 -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp -s 1.0.0.0/10 -d 2.0.0.0/8 --sport 3177:31872 --dport 3618:61519 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.0.0.0/9 -d 1.128.0.0/9 --sport 51346:58932 --dport 12658:58721 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp -s 2.0.0.0/9 -d 1.0.0.0/9 --sport 3614:36940 --dport 6469:41535 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.0.0.0/8 -d 1.0.0.0/10 --sport 39953:56676 --dport 20615:44564 -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.128.0.0/9 -d 1.0.0.0/9 --sport 39297:49362 --dport 25025:54485 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp -s 2.128.0.0/9 -d 1.128.0.0/10 --sport 23318:50496 --dport 6406:15661 -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.0.0.0/9 -d 1.0.0.0/9 --sport 19540:46876 --dport 33251:45189 --tcp-flags SYN,ACK,FIN,RST ACK -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.0.0.0/8 -d 1.0.0.0/9 --sport 26557:46816 --dport 4003:48812 -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.128.0.0/10 -d 1.192.0.0/10 --sport 41948:60130 --dport 20940:26283 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.128.0.0/10 -d 1.192.0.0/10 --sport 41948:60130 --dport 20940:26283 --tcp-flags SYN,ACK,FIN,RST RST -j ACCEPT
+iptables -A INPUT -i eth1 -p tcp -s 2.0.0.0/8 -d 1.128.0.0/10 --sport 22603:46406 --dport 7547:33984 -j DROP
+iptables -A OUTPUT -o eth1 -p tcp -s 1.0.0.0/8 -d 2.0.0.0/10 --sport 28132:46089 --dport 32810:43196 --tcp-flags SYN,ACK,FIN,RST FIN -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.0.0.0/8 -d 2.0.0.0/10 --sport 28132:46089 --dport 32810:43196 --tcp-flags SYN,ACK,FIN,RST SYN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.0.0.0/8 -d 2.0.0.0/10 --sport 28132:46089 --dport 32810:43196 --tcp-flags SYN,ACK,FIN,RST FIN,ACK -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.0.0.0/8 -d 2.128.0.0/9 --sport 38588:41911 --dport 24308:43245 -j ACCEPT
+iptables -A OUTPUT -o eth1 -p tcp -s 1.0.0.0/10 -d 2.0.0.0/10 --sport 19798:33685 --dport 21550:37231 -j ACCEPT

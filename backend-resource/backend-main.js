@@ -155,7 +155,7 @@ $('button[id="inspect-button"]').attr('type', 'button').on('click', function () 
 	}
 });
 
-var portLeaf ={};
+
 function checkAnomaly ( node ) {
 	console.log('node',node);
 	node['ARARTree']['leafList'].forEach(function ( leaf, leafCount ) {
@@ -731,6 +731,7 @@ function createRouteList ( node ) {
 		}
 	});
 	return flagRoute;
+
 }
 
 function checkIsSubnet ( ipAddr, nwAddr ) {
@@ -805,9 +806,7 @@ $('button[id="show-object"]').attr('type', 'button').on('click', function() {
 	myObject.showObject();
 });
 
-function ipBlockhandler (event) {
 
-}
 function createAnomalyChart ( event ) {
 	//console.log(event);
 	console.log(this);
@@ -1049,8 +1048,6 @@ function createAnomalyChart ( event ) {
 		if ( hasChildren ) { this.items = []; }
 		if ( doDisable ) { this.disabled = true; }
 	}
-
-	depictportResult(event.point.series.index,nodeName);
 }
 
 function depictResult () {
@@ -1216,16 +1213,20 @@ function redOrGreen (event) {
 	let nodeName = (this.chart.renderTo.id).split('-')[1];
 	let block = myObject['aclObject'][nodeName]['ARARTree']['leafList'][this.index];
 	let curNode = myObject['aclObject'][nodeName];
+	let index = this.index;
+	console.log('thisindex',index);
 	console.log('block',block);
 	if(block['anomalyInfo']['anomaly']==true){
 		console.log('event',event);
 		createAnomalyChart(event);
 	}
 	else			
-		doPort(block,curNode);	
+		doPort(block,curNode,index);
+			
+		
 }
 
-function doPort(portBlock,curNode){
+function doPort(portBlock,curNode,index){
 
 	var portExtract = portExtractor(portBlock['ruleList']);
 	var portVector = [putVector(portExtract[0]), putVector(portExtract[1])];
@@ -1239,14 +1240,16 @@ function doPort(portBlock,curNode){
 	portleaf.forEach(function ( leaf, leafCount ) {
 			leaf['routeObject'] = portBlock['oriRouteObject'];
 	});	
-	//console.log(portleaf);
 	checkPortAnomaly(portleaf);
+	//console.log('thisindex',index);
+	depictportResult(index,portleaf);
+	
 }
-
-
 function checkPortAnomaly(portList){
 	// fill all the rule in the leafNode to routeObject
 	//console.log('portList',portList);
+	let startTime = process.hrtime();
+
 	_.each(portList,function(leaf,leafCount){
 		leaf['anomalyInfo'] = {
 			'anomaly': false,
@@ -1257,18 +1260,21 @@ function checkPortAnomaly(portList){
 			'consistent': [],
 			
 		};
+		//console.log(leaf);
 		if ( leaf['flag'] ) {
 			_.each(leaf['ruleList'], function ( rule, ruleIdx ) {
 				if ( rule['tcp_flags'].length === 0 ) {
-					_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
-						_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) {
-							if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
-								route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
-							}
+					_.each(leaf['routeObject'], function ( extraRout,extraRoutkey ) {
+						_.each(extraRout, function ( flagRoute, flagKey ) {
+							_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) {
+								if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
+									route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
+								}
+							});
 						});
 					});
 				} else if ( rule['tcp_flags'].length === 1 ) {
-					_.each(leaf['routeObject'][rule.tcp_flags[0]][rule.isExchange], function ( route, routeIdx ) {
+					_.each(leaf['routeObject']['true'][rule.tcp_flags[0]][rule.isExchange], function ( route, routeIdx ) {
 						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
 							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
 						}
@@ -1280,7 +1286,7 @@ function checkPortAnomaly(portList){
 					} else {
 						tcp_flags = `${rule['tcp_flags'][0]}+${rule['tcp_flags'][1]}`;
 					}
-					_.each(leaf['routeObject'][tcp_flags][rule.isExchange], function ( route, routeIdx ) {
+					_.each(leaf['routeObject']['true'][tcp_flags][rule.isExchange], function ( route, routeIdx ) {
 						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
 							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
 						}
@@ -1288,16 +1294,19 @@ function checkPortAnomaly(portList){
 				}
 			});
 		} else {
+			//console.log('flag',false);
 			_.each(leaf['ruleList'], function ( rule, ruleIdx ) {
-				_.each(leaf['routeObject'],function(extraRout,extraRoutkey){
+				//console.log('rule',rule,'ruleIdx',ruleIdx);
+				_.each(leaf['routeObject'],function(extraRout,extraRoutkey){//ANY
+					//console.log('rulextraRoute',extraRout,'extraRoutkey',extraRoutkey);
 					_.each(extraRout, function ( flagRoute, flagKey ) {
-						//console.log(leaf['routeObject']);
+						//console.log('flagRoute',flagRoute,flagRoute[rule.isExchange]);
 						_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) {
-							console.log('flag',false);
+							// console.log('route',route,'ruleIdx',routeIdx);
 							if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
-								console.log('route',route,'rule',rule);
+								//console.log('route',route,'rule',rule);
 								route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
-								//console.log('route',route);
+								route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(ruleIdx);
 							}
 						});
 					});
@@ -1305,110 +1314,113 @@ function checkPortAnomaly(portList){
 				
 			});
 		}
-
 		// check anomaly of the leafNode by routeObject
 		// check shadowing, redundancy, lost and conflict
 		let anomalyLocate;
-		_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
-			_.each(flagRoute, function ( exchg, exchgKey ) {
-				_.each(exchg, function ( route, routeIdx ) {
-					route['sameAction'] = true;
-					let hopKeyArray = Object.keys(route);
+		_.each(leaf['routeObject'], function ( extraRout,extraRoutkey ) {
+			_.each(extraRout,function(flagRoute, flagKey ){
+				_.each(flagRoute, function ( exchg, exchgKey ) {
+					_.each(exchg, function ( route, routeIdx ) {
+						route['sameAction'] = true;
+						let hopKeyArray = Object.keys(route);
 
-					_.each(route, function ( hop, hopKey ) {
-						if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
-						hop['sameAction'] = true;
-						console.log('hop2',hop['ruleList'].length);
-						if ( hop['ruleList'].length === 0 ) {
-							hop['action'] = undefined;
-							hop['sameAction'] = false;
-							route['action'] = undefined;
-							route['sameAction'] = false;
-							leaf['anomalyInfo']['anomaly'] = true;
-							leaf['anomalyInfo']['lost'].push([`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`]);
-						} else {
-							hop['action'] = hop['ruleList'][0]['action'];
-
-							if ( hop['ruleList'].length > 1 ) {
-								_.each(hop['ruleList'], function ( rule, ruleIdx ) {
-									if ( ruleIdx !== 0 ) {
-										anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`];
-										if ( rule['action'] !== hop['ruleList'][0]['action'] ) {
-											// leaf['anomalyInfo']['anomaly'] = true;
-											hop['sameAction'] = false;
-											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['shadowing']) ) {
-												leaf['anomalyInfo']['shadowing'].push(anomalyLocate);
-											}
-										} else {
-											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['redundancy']) ) {
-												leaf['anomalyInfo']['redundancy'].push(anomalyLocate);
-											}
-										}
-									}
-								});
-
-								// if ( hop['sameAction'] === true ) {
-								// 	// leaf['anomalyInfo']['anomaly'] = true;
-								// 	leaf['anomalyInfo']['redundancy'].push(`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`);
-								// }
-							}
-						}
-
-						let hopKeyIdx = hopKeyArray.indexOf(hopKey);
-						if ( hopKeyIdx !== 0 ) {
-							if ( hop['action'] !== route[hopKeyArray[hopKeyIdx-1]]['action'] ) {
+						_.each(route, function ( hop, hopKey ) {
+							if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
+							hop['sameAction'] = true;
+							//console.log('hop2',hop['ruleList'].length);
+							if ( hop['ruleList'].length === 0 ) {
+								hop['action'] = undefined;
+								hop['sameAction'] = false;
 								route['action'] = undefined;
 								route['sameAction'] = false;
-								anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}`];
-								if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-									leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+								leaf['anomalyInfo']['anomaly'] = true;
+								leaf['anomalyInfo']['lost'].push([`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`]);
+							} else {
+								hop['action'] = hop['ruleList'][0]['action'];
+
+								if ( hop['ruleList'].length > 1 ) {
+									_.each(hop['ruleList'], function ( rule, ruleIdx ) {
+										if ( ruleIdx !== 0 ) {
+											anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`];
+											if ( rule['action'] !== hop['ruleList'][0]['action'] ) {
+												// leaf['anomalyInfo']['anomaly'] = true;
+												hop['sameAction'] = false;
+												if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['shadowing']) ) {
+													leaf['anomalyInfo']['shadowing'].push(anomalyLocate);
+												}
+											} else {
+												if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['redundancy']) ) {
+													leaf['anomalyInfo']['redundancy'].push(anomalyLocate);
+												}
+											}
+										}
+									});
+									//console.log('anomalyLocate',anomalyLocate);
+									// if ( hop['sameAction'] === true ) {
+									// 	// leaf['anomalyInfo']['anomaly'] = true;
+									// 	leaf['anomalyInfo']['redundancy'].push(`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`);
+									// }
 								}
-								// leaf['anomalyInfo']['conflict'].push(`${flagKey}-${exchgKey}-${routeIdx}`);
 							}
+
+							let hopKeyIdx = hopKeyArray.indexOf(hopKey);
+							if ( hopKeyIdx !== 0 ) {
+								if ( hop['action'] !== route[hopKeyArray[hopKeyIdx-1]]['action'] ) {
+									route['action'] = undefined;
+									route['sameAction'] = false;
+									anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}`];
+									if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+										leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+									}
+									// leaf['anomalyInfo']['conflict'].push(`${flagKey}-${exchgKey}-${routeIdx}`);
+								}
+							}
+
+						});	//	hop
+
+						if ( route['sameAction'] === true ) {
+							route['action'] = route[hopKeyArray[0]]['action'];
 						}
 
-					});	//	hop
+					});	//	route
+				});	//	exchg				
+			});
 
-					if ( route['sameAction'] === true ) {
-						route['action'] = route[hopKeyArray[0]]['action'];
-					}
-
-				});	//	route
-			});	//	exchg
 		});	//	flagRoute
 		// check consistent
 
 		if ( leaf['flag'] ) {
+			//console.log(456);
 			let exchgKeyArray = ['false', 'true', 'false'];
 			let flagKeyArray = Object.keys(leaf['routeObject']);
-			_.each(leaf['routeObject']['SYN'], function ( exchgS, exchgSKey ) {
+			_.each(leaf['routeObject']['true']['SYN'], function ( exchgS, exchgSKey ) {
 				_.each(exchgS, function ( routeS, routeSIdx ) {
 					if ( !routeS['sameAction'] ) return;
 					let tarExchgSAKey = exchgKeyArray[exchgKeyArray.indexOf(exchgSKey) + 1];
 
 					// check for SYN+ACK
-					_.each(leaf['routeObject']['SYN+ACK'][tarExchgSAKey], function ( routeSA, routeSAIdx ) {
+					_.each(leaf['routeObject']['true']['SYN+ACK'][tarExchgSAKey], function ( routeSA, routeSAIdx ) {
 						if ( !routeSA['sameAction'] ) return;
 						if ( routeSA['action'] === routeS['action'] ) {
 							// check for ACK
-							_.each(leaf['routeObject']['ACK']['false'], function ( routeAF, routeAFIdx ) {
+							_.each(leaf['routeObject']['true']['ACK']['false'], function ( routeAF, routeAFIdx ) {
 								if ( !routeAF['sameAction'] )  return;
-								_.each(leaf['routeObject']['ACK']['true'], function ( routeAT, routeATIdx ) {
+								_.each(leaf['routeObject']['true']['ACK']['true'], function ( routeAT, routeATIdx ) {
 									if ( !routeAT['sameAction'] )  return;
 									if ( routeAF['action'] === routeAT['action'] ) {
 										if ( routeAT['action'] === routeS['action'] ) {
 											// check for FIN series
-											_.each(leaf['routeObject']['FIN'], function ( exchgF, exchgFKey ) {
+											_.each(leaf['routeObject']['true']['FIN'], function ( exchgF, exchgFKey ) {
 												_.each(exchgF, function ( routeF, routeFIdx ) {
 													if ( !routeF['sameAction'] ) return;
 													let tarExchgFAKey = exchgKeyArray[exchgKeyArray.indexOf(exchgFKey) + 1];
 													
-													_.each(leaf['routeObject']['FIN+ACK'][tarExchgFAKey], function ( routeFA, routeFAIdx ) {
+													_.each(leaf['routeObject']['true']['FIN+ACK'][tarExchgFAKey], function ( routeFA, routeFAIdx ) {
 														if ( !routeFA['sameAction'] ) return;
 														if ( routeFA['action'] === routeF['action'] ) {
 															if ( routeFA['action'] === routeS['action'] ) {
 																// check for RST
-																_.each(leaf['routeObject']['RST'], function ( exchgR, exchgRKey ) {
+																_.each(leaf['routeObject']['true']['RST'], function ( exchgR, exchgRKey ) {
 																	_.each(exchgR, function ( routeR, routeRIdx ) {
 																		if ( !routeR['sameAction'] ) return;
 																		if ( routeR['action'] === routeS['action'] ) {
@@ -1690,9 +1702,10 @@ function checkPortAnomaly(portList){
 			}
 		} else {
 			//console.log('leaf2',leaf['routeObject']);
-			_.each(leaf['routeObject']['ANY']['false'], function ( routeF, routeFIdx ) {
+			//console.log(123);
+			_.each(leaf['routeObject']['false']['ANY']['false'], function ( routeF, routeFIdx ) {
 				if ( routeF['sameAction'] ) {
-					_.each(leaf['routeObject']['ANY']['true'], function ( routeT, routeTIdx ) {
+					_.each(leaf['routeObject']['false']['ANY']['true'], function ( routeT, routeTIdx ) {
 						if ( routeT['sameAction'] ) {
 							if ( routeF['action'] === routeT['action'] ) {
 								leaf['anomalyInfo']['consistent'].push([`ANY-false-${routeFIdx}`, `ANY-true-${routeTIdx}`]);
@@ -1712,60 +1725,59 @@ function checkPortAnomaly(portList){
 			}
 		}
 	});
-
+	let createTime = process.hrtime(startTime);
+	console.log(`anomaly: ` + (createTime[0] + createTime[1]/1e9));
 }
 	//console.log('portLeaf',node.nodeName,portLeaf);
-
-
-function depictportResult (thisindex,firewall) 
-{
+function depictportResult (thisindex,portleaf) 
+{	console.log('thisindex',thisindex);
 	if ( $('#page-body').hasClass('hidden') ) 
 		$('#page-body').removeClass('hidden');
 	$('#port-chart-tabs').empty();
 	$('#port-tab-content').empty();
 	
-	let showingNodeCount = 0;
+	let showingblockCount = 0;
+	//let portDis = portleaf['ruleList'];
 	
-	
-	Object.keys(myObject['aclObject']).forEach(function ( nodeName, nodeNameCount ) {
-		if( firewall==nodeName ){
-			let curNode = myObject['aclObject'][nodeName];
-			if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
-			 	showingNodeCount++;
-			 	return;
-			 }
-			let chartID = `chart-${thisindex}`;
-			let $tab = `<li id="li-${thisindex}"><a data-toggle="tab" href="#tab-${thisindex}">block${thisindex}</a></li>`;
-			// let $chart = `<div id="tab-${nodeName}" class="tab-pane fade"><div id="${chartID}" style="height:400px"></div></div>`;
-			let $chart = `<div id="tab-${thisindex}" class="tab-pane fade">
-							<div class="row"> 
-								<div class="col-xs-12"> 
-									<div id="${chartID}" style="height:400px"></div> 
-								</div> 
-							</div>
-						</div>
-						<div id="tab-${thisindex}" class="tab-pane fade">
-						<div class="row"> 
-								<div class="col-xs-12" id="block-content"></div> 
-							</div>
-						</div>
-						`;
-			//console.log(`${thisindex}`);
-			$($tab).appendTo('#port-chart-tabs');
-			$($chart).appendTo('#port-tab-content');
+		
+	let chartID = `chart-${thisindex}`;
+	let $tab = `<li id="li-${thisindex}"><a data-toggle="tab" href="#tab-${thisindex}">block${thisindex}</a></li>`;
+	// let $chart = `<div id="tab-${nodeName}" class="tab-pane fade"><div id="${chartID}" style="height:400px"></div></div>`;
+	let $chart = `<div id="tab-${thisindex}" class="tab-pane fade">
+					<div class="row"> 
+						<div class="col-xs-12"> 
+							<div id="${chartID}" style="height:400px"></div> 
+						</div> 
+					</div>
+				</div>
+				<div id="tab-${thisindex}" class="tab-pane fade">
+				<div class="row"> 
+						<div class="col-xs-12" id="block-content"></div> 
+					</div>
+				</div>
+				`;
+	//console.log(`${thisindex}`);
+	$($tab).appendTo('#port-chart-tabs');
+	$($chart).appendTo('#port-tab-content');
 
-			if ( nodeNameCount === showingNodeCount ) {
-				$(`#tab-${thisindex}`).addClass('in active');
-				$(`#li-${thisindex}`).addClass('active');
-			}
-			createHighcharts(chartID, curNode['ruleList']);
-			// $( "#tabs" ).tabs();		
-		}	
-	});		
-
+	Object.keys(portleaf).forEach(function ( leaf, leafCount ) {		
+		// let curNode = myObject['aclObject'][nodeName];
+		// if ( !myObject['aclObject'][nodeName].hasOwnProperty('ARARTree') ) {
+		//  	showingNodeCount++;
+		//  	return;
+		//  }
+		
+		//}
+		createHighcharts(chartID, leaf['ruleList']);
+		// $( "#tabs" ).tabs();		
+		
+	});
+	//if ( nodeNameCount === showingNodeCount ) {
+		$(`#tab-${thisindex}`).addClass('in active');
+		$(`#li-${thisindex}`).addClass('active');
 	function createHighcharts ( chartID, dataList ) {
 		//console.log(dataList);
-
+		let startTime = process.hrtime();
 		let chart = {
 			chart: { type: 'arearange', zoomType: 'xy'},
 			title: { text: null },
@@ -1807,42 +1819,288 @@ function depictportResult (thisindex,firewall)
 				title: "Source Address",
 				labels: { formatter: function () { return this.value; } },
 				floor: 0,
-				ceiling: 65535,
+				ceiling: 65,
 			},
 
 			yAxis: {
 				title: "Destination Address",
 				labels: { formatter: function () { return this.value; } },
 				floor: 0,
-				ceiling: 65535,
+				ceiling: 65,
 			}
 		};
-		chart.series = createSeries(dataList);
+		chart.series = createSeries(portleaf);
 		Highcharts.chart(chartID, chart);
+		let createTime = process.hrtime(startTime);
+		console.log(`anomaly: ` + (createTime[0] + createTime[1]/1e9));
 	}
 	
 	function createSeries ( dataList ) {
 		let seriesList = [];
-
+		console.log('createSeries',159);
 		dataList.forEach(function ( data, dataCount ) {
 			let series, xMin, xMax, yMin, yMax;
-			let src = new PortObject(data['listOrder'], data['src_port']);
-			let dst = new PortObject(data['listOrder'], data['dest_port']);
+			// let src = new PortObject(data['listOrder'], data['src_port']);
+			// let dst = new PortObject(data['listOrder'], data['dest_port']);
 			
-			xMin = src['min'];
-			yMin = dst['min'];
-			xMax = src['max'];
-			yMax = dst['max'];
+			xMin = data['min_src'];
+			yMin = data['min_dst'];
+			xMax = data['max_src'];
+			yMax = data['max_dst'];
 
 			series = { 
-				name: `block ${dataCount}`,
+				name: `block ${dataCount}`, color: '#f45b5b',//red
 				data: [{ x: xMin, low: yMin, high: yMax }, { x: xMax, low: yMin, high: yMax }],
 			};
-			
+
+			if ( !data['anomalyInfo']['anomaly'] ) { series.color = '#90ed7d'; }
 			seriesList.push(series);
 		});
 		
 		return seriesList;
+	}
+}
+
+function createAnomalyChart ( event ) {
+	//console.log(event);
+	console.log(this);
+	let nodeName = (event.point.series.chart.renderTo.id).split('-')[1];
+	let block = myObject['aclObject'][nodeName]['ARARTree']['leafList'][event.point.series.index];
+	
+	console.log(event.point.series.index, block);
+
+	$.gritter.removeAll();
+	//$(`#tab-${nodeName} div#block-content`).empty();
+	$(`div#block-content`).empty();
+	let $chart = fs.readFileSync(`${__dirname}/templates/block-information.html`, 'utf-8').toString();
+	$($chart).appendTo(`#tab-${nodeName} div#block-content`);
+	
+
+	$(`#tab-${nodeName} span#src-range`).text(`${ipConvertor(event.point.series.xData[0])} / ${block['parameter']['nodeLevel'] - 1}`);
+	$(`#tab-${nodeName} span#dest-range`).text(`${ipConvertor(event.point.series.yData[0][0])} / ${block['parameter']['nodeLevel'] - 1}`);
+	$(`<table id="path-table" class="table table-bordered table-hover"></table>`).appendTo(`#tab-${nodeName} div#path-data`);
+	
+	
+
+	_.each(block['routeObject'], function ( flagRoute, flagKey ) {
+		let flagKeyID;
+		if ( flagKey.split('+').length > 1 ) {
+			flagKeyID = flagKey.split('+').join('-');
+		} else {
+			flagKeyID = flagKey;
+		}
+		_.each(flagRoute, function ( exchg, exchgKey ) {
+			let thead = `<thead><tr><td><div class="row">
+							<div class="col-xs-5"> <span id="span-left" style="float: right;"> </span> </div>
+							<div class="col-xs-2"> ${flagKey} </div>
+							<div class="col-xs-5"> <span id="span-right" style="float: left;"> </span> </div>
+						</div></td></tr></thead>`;
+			$(thead).appendTo(`#tab-${nodeName} table#path-table`);
+			let tbody = document.createElement('tbody');
+			tbody.id = flagKeyID;
+			$(tbody).appendTo(`#tab-${nodeName} table#path-table`);
+			
+			_.each(exchg, function ( route, routeIdx ) {
+				let routeTitle = [];
+
+				_.each(route, function ( hop, hopKey ) {
+					if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
+					let [fw, eth, io] = hopKey.split('_');
+					routeTitle.push(`${fw}(${eth})`);
+				});
+
+				let routeHeader, routeID = `${flagKeyID}-${exchgKey}-${routeIdx}`;
+				if( exchgKey === 'false' ) {
+					routeHeader = `<tr> <td class="center"> <span class="action-buttons" style="float: left;"> 
+					<a href="#" id="${routeID}" class="show-details-btn" title="Show Details">
+					<i class="ace-icon fa fa-plus-square-o"></i> </a> </span>
+					${ routeTitle.join('  <i class="ace-icon fa fa-long-arrow-right"></i>  ')}  </td> </tr>`;
+				} else {
+					routeHeader = `<tr> <td class="center"> <span class="action-buttons" style="float: left;"> 
+					<a href="#" id="${routeID}" class="show-details-btn" title="Show Details">
+					<i class="ace-icon fa fa-plus-square-o"></i> </a> </span>
+					${ routeTitle.join('  <i class="ace-icon fa fa-long-arrow-left"></i>  ')} </td> </tr>`;
+				}
+				let routeBody = `<tr class="detail-row"> <td colspan="8"> <div class="table-detail">
+				<table class="table table-bordered table-hover"> <thead> <tr id="thead-${routeID}"> </tr> </thead>
+				<tbody id="tbody-${routeID}"> </tbody> </table> </div> </td> </tr>`;
+
+				$(tbody).append(routeHeader, routeBody);
+
+				let hopKeyArray = Object.keys(route);
+				_.each(route, function ( hop, hopKey ) {
+					if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
+					let [fw, eth, io] = hopKey.split('_');
+					$(`<td>${fw}<br>${eth}<br>${io}</td>`).appendTo(`#tab-${nodeName} tr#thead-${routeID}`);
+
+					_.each(hop['ruleList'], function ( rule, ruleIdx ) {
+						let ruleTR = $(`#tab-${nodeName} tbody#tbody-${routeID}`).children()[ruleIdx];
+						if ( !ruleTR ) {
+							ruleTR = document.createElement('tr');
+							$(ruleTR).appendTo(`#tab-${nodeName} tbody#tbody-${routeID}`);
+						}
+
+
+						let ruleColor = '#90ed7d';
+						if ( rule.action === 'DROP' ) { ruleColor = '#f45b5b'; }
+
+						for (let i=0; i<=hopKeyArray.indexOf(hopKey); i++) {
+							let ruleTD;
+							if ( i !== hopKeyArray.indexOf(hopKey) ) {
+								ruleTD = $(ruleTR).children()[i];
+								// console.log(ruleTD);
+								if ( !ruleTD ) {
+									ruleTD = `<td></td>`;
+									$(ruleTD).appendTo(ruleTR);
+								}
+							} else {
+								ruleTD = `<td style="background-color: ${ruleColor}">
+								<a class="show-rule-btn" title="Click to show rule detial">
+								<label>${rule.ruleOrder}</label>
+								</a></td>`;
+								$(ruleTD).appendTo(ruleTR);
+							}
+						}
+
+
+					});
+				});
+			});
+
+		});
+	});
+
+	for (let i=0; i<1; i++) {
+		$(`#tab-${nodeName} span#span-left`).each(function ( idx ) {
+			if ( (idx % 2) === 0 ) {
+				$(this).append(`<i class="ace-icon fa fa-arrow-right"></i>`);
+			} else {
+				$(this).append(`<i class="ace-icon fa fa-arrow-left"></i>`);
+			}
+			
+		});
+		$(`#tab-${nodeName} span#span-right`).each(function ( idx ) {
+			if ( (idx % 2) === 0 ) {
+				$(this).append(`<i class="ace-icon fa fa-arrow-right"></i>`);
+			} else {
+				$(this).append(`<i class="ace-icon fa fa-arrow-left"></i>`);
+			}
+		});
+	}
+
+	$('.show-details-btn').on('click', function ( e ) {
+		// console.log('test in block');
+		e.preventDefault();
+		$(this).closest('tr').next().toggleClass('open');
+		$(this).find(ace.vars['.icon']).toggleClass('fa-plus-square-o').toggleClass('fa-minus-square-o');
+	});
+
+	$('.show-rule-btn').on('click', function(e) {
+		console.log('show-rule-btn');
+		e.preventDefault();
+		let ruleOrder = $(this).find('label').text();
+		let [fw, eth, io] = $($(this).closest('tbody')).prev().find('td')[$(this).parent()[0].cellIndex].innerHTML.split('<br>');
+		let rule = myObject['aclObject'][fw]['ruleObject'][eth][io][ruleOrder];
+		
+		let tableColor;
+		if ( rule.action === 'ACCEPT' ) {
+			tableColor = 'gritter-success';
+		} else if ( rule.action === 'DROP' ) {
+			tableColor = 'gritter-error';
+		}
+		
+		let table = [];
+		// table.push(`<tr> <td style="text-align: right">Name: </td> <td class="left">${rule.nodeName}</td> </tr>`);
+		// table.push(`<tr> <td style="text-align: right">Interface: </td> <td>${rule.interface}</td> </tr>`);
+		// table.push(`<tr> <td style="text-align: right">In/Out: </td> <td>${rule.in_out}</td> </tr>`);
+		// table.push(`<tr> <td style="text-align: right">Order: </td> <td>${rule.ruleOrder}</td> </tr>`);
+		table.push(`<tr> <td style="text-align: right">Protocol</td> <td>${rule.protocol}</td> </tr>`);
+		table.push(`<tr> <td style="text-align: right">Src IP: </td> <td>${rule.src_ip}</td> </tr>`);
+		table.push(`<tr> <td style="text-align: right">Dst IP: </td> <td>${rule.dest_ip}</td> </tr>`);
+		if ( myObject['inspInfo']['segmentMode'] ) {
+			let tcp_flags;
+			if ( rule.tcp_flags.length === 0 ) {
+				tcp_flags = 'ANY';
+			} else if ( rule.tcp_flags.length === 1 ) {
+				tcp_flags = rule.tcp_flags[0];
+			} else if ( rule.tcp_flags.length > 1 ) {
+				if ( rule.tcp_flags[0] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[1]}+${rule.tcp_flags[0]}`;
+				} else if ( rule.tcp_flags[1] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[0]}+${rule.tcp_flags[1]}`;
+				}
+			}
+			table.push(`<tr> <td style="text-align: right">TCP Flags: </td> <td>${tcp_flags}</td> </tr>`);
+		}
+		table.push(`<tr> <td style="text-align: right">Action: </td> <td>${rule.action}</td> </tr>`);
+
+
+		let data = []
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Order:</label><label class="col-sm-8 ">${rule.ruleOrder}</label></div>`);
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Protocol:</label><label class="col-sm-8 ">${rule.protocol}</label></div>`);
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Src IP:</label><label class="col-sm-8 ">${rule.src_ip}</label></div>`);
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Dst IP:</label><label class="col-sm-8 ">${rule.dest_ip}</label></div>`);
+		if ( myObject['inspInfo']['segmentMode'] ) {
+			let tcp_flags;
+			if ( rule.tcp_flags.length === 0 ) {
+				tcp_flags = 'ANY';
+			} else if ( rule.tcp_flags.length === 1 ) {
+				tcp_flags = rule.tcp_flags[0];
+			} else if ( rule.tcp_flags.length > 1 ) {
+				if ( rule.tcp_flags[0] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[1]}+${rule.tcp_flags[0]}`;
+				} else if ( rule.tcp_flags[1] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[0]}+${rule.tcp_flags[1]}`;
+				}
+			}
+			data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">TCP flag:</label><label class="col-sm-8 ">${tcp_flags}</label></div>`);
+		}
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Action:</label><label class="col-sm-8 ">${rule.action}</label></div>`);
+
+		$.gritter.add({
+			title: `<div class="center">${rule.nodeName} - ${rule.interface} - ${rule.in_out} - ${rule.ruleOrder}</div>`,
+			// text: `<div class="row"> <div class="col-xs-12"> <form class="form-horizontal" role="form"> ${data.join('')} </form> </div> </div>`,
+			text: `<table class="table">${table.join('')}</table>`,
+			sticky: true,
+			time: '',
+			class_name: tableColor,
+		});
+	});
+
+	// $(`#tab-${nodeName} div#anomaly-body`).accordion({ collapsible: true, heightStyle: "content", animate: 250, header: ".accordion-header"});
+
+	$(`#tab-${nodeName} ul#anomaly-tree`).shieldTreeView({
+		events: { select: anomalySelectHandler },
+		dataSource: { data: convertAnomalyInfo(block['anomalyInfo']) },
+	});
+	// this.index;
+	function convertAnomalyInfo ( obj ) {
+		let dataList = [];
+
+		_.each(obj, function ( typeData, typeName ) {
+			if ( typeName === 'anomaly' ) return;
+			
+			let anomalyList = new AnomalyTreeData(`${typeName} (${typeData.length})`, true);
+			
+			if ( typeData.length === 0 ) {
+				anomalyList['items'].push(new AnomalyTreeData('null', false, true));
+			} else {
+				_.each(typeData, function ( anomalyData, anomalyIdx ) {
+					anomalyList['items'].push(new AnomalyTreeData(anomalyData));
+				});
+			}
+
+			dataList.push(anomalyList);
+		});
+
+		return dataList;
+		console.log(dataList);
+	}
+
+	function AnomalyTreeData ( name, hasChildren=false, doDisable=false ) {
+		this.text = name;
+		if ( hasChildren ) { this.items = []; }
+		if ( doDisable ) { this.disabled = true; }
 	}
 }
 
