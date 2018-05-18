@@ -1068,12 +1068,12 @@ function depictResult () {
 		// let $chart = `<div id="tab-${nodeName}" class="tab-pane fade"><div id="${chartID}" style="height:400px"></div></div>`;
 		let $chart = `<div id="tab-${nodeName}" class="tab-pane fade">
 						<div class="row"> 
-							<div class="col-xs-12"> 
+							<div class="col-xs-6"> 
 								<div id="${chartID}" style="height:400px"></div> 
 							</div> 
-						</div>
-						<div class="row">
-							<div class = "col-xs-12">
+						
+						
+							<div class = "col-xs-6">
 								<div id="port-content" class="tabbable">
 									<ul id="port-tabs" class="nav nav-tabs"></ul>
 									<div id="port-tabs-content" class="tab-content" style=""></div>
@@ -1246,11 +1246,11 @@ function doPort(portBlock,curNode,index){
 	//console.log('portBlock',portBlock['routeObject']);
 	
 	let startTime = process.hrtime();
-	checkPortAnomaly(portBlock['portLeaf'], portBlock);
+	//checkPortAnomaly(portBlock['portLeaf'], portBlock);
+	anomaly(portBlock['portLeaf']);
 	let createTime = process.hrtime(startTime);
 	console.log(`anomaly: ` + (createTime[0] + createTime[1]/1e9));
 	//console.log('thisindex',index);
-	//anomaly(portleaf);
 	//console.log('leaf',portleaf[0]['anomalyInfo']);
 
 	depictportResult(portBlock['portLeaf'], index, curNode);
@@ -1827,7 +1827,7 @@ function depictportResult (portleaf, thisindex, curNode)
 					lineWidth: 0.5,
 					marker: { enabled: false, states: { hover: { enabled: false } } },
 					cursor: 'pointer',
-					events: { click: createPortChart },
+					'click': createPortChart(dataList,event) ,
 				}
 			},
 			xAxis: {
@@ -1865,8 +1865,8 @@ function depictportResult (portleaf, thisindex, curNode)
 				data: [{ x: xMin, low: yMin, high: yMax }, { x: xMax, low: yMin, high: yMax }],
 			};
 
-			if ( data['anomalyInfo']['anomaly'] ) { series.color = '#f45b5b'; }
-			else { series.color = '#90ed7d'; }
+			if ( data['anomalyInfo']['normal'].length != 0 ) { series.color = '#90ed7d'; }
+			else { series.color = '#f45b5b'; }
 
 			seriesList.push(series);
 		});
@@ -1874,21 +1874,135 @@ function depictportResult (portleaf, thisindex, curNode)
 	}
 }
 
-function createPortChart ( event ) {
-	console.log(event);
-	console.log(this.index);
-	// let nodeName = (event.point.series.chart.renderTo.id).split('-')[1];
-	// let block = event[this.index];
-	// console.log(this.index, block);
+function createPortChart ( dataList, event) {
+	console.log(event.point.series.index);
+	console.log('dataList',dataList);
+	let nodeName = (event.point.series.chart.renderTo.id).split('-')[1];
+	console.log('nodeName',nodeName);
+	let block = dataList[event.point.series.index];
+	console.log('block', block);
 
-	// $.gritter.removeAll();
-	// //$(`#tab-${nodeName} div#block-content`).empty();
-	// $(`div#block-content`).empty();
-	// let $chart = fs.readFileSync(`${__dirname}/templates/port-information.html`, 'utf-8').toString();
-	// _.each(event['ruleList'],function (leaf,leafCount){
+	$.gritter.removeAll();
+	//$(`#tab-${nodeName} div#block-content`).empty();
+	$(`div#block-content`).empty();
+	let $chart = fs.readFileSync(`${__dirname}/templates/port-information.html`, 'utf-8').toString();
+	$($chart).appendTo(`#tab-${nodeName} div#portInfo`);
+	
 
-	// });
+	$(`#tab-${nodeName} span#nodeName`).text(`${nodeName}`);
+	
+	$(`<table id="rule-table" class="table table-bordered table-hover"></table>`).appendTo(`#tab-${nodeName} div#rule-data`);
+	
+	
 
+
+	$('.show-rule-btn').on('click', function(e) {
+		console.log('show-rule-btn');
+		e.preventDefault();
+		let ruleOrder = $(this).find('label').text();
+		let [fw, eth, io] = $($(this).closest('tbody')).prev().find('td')[$(this).parent()[0].cellIndex].innerHTML.split('<br>');
+		let rule = myObject['aclObject'][fw]['ruleObject'][eth][io][ruleOrder];
+		
+		let tableColor;
+		if ( rule.action === 'ACCEPT' ) { //按下rule顯示相對顏色rule資訊
+			tableColor = 'gritter-success';
+		} else if ( rule.action === 'DROP' ) {
+			tableColor = 'gritter-error';
+		}
+		
+		let table = [];
+		// table.push(`<tr> <td style="text-align: right">Name: </td> <td class="left">${rule.nodeName}</td> </tr>`);
+		// table.push(`<tr> <td style="text-align: right">Interface: </td> <td>${rule.interface}</td> </tr>`);
+		// table.push(`<tr> <td style="text-align: right">In/Out: </td> <td>${rule.in_out}</td> </tr>`);
+		// table.push(`<tr> <td style="text-align: right">Order: </td> <td>${rule.ruleOrder}</td> </tr>`);
+		table.push(`<tr> <td style="text-align: right">Protocol</td> <td>${rule.protocol}</td> </tr>`);
+		table.push(`<tr> <td style="text-align: right">Src IP: </td> <td>${rule.src_ip}</td> </tr>`);
+		table.push(`<tr> <td style="text-align: right">Dst IP: </td> <td>${rule.dest_ip}</td> </tr>`);
+		if ( myObject['inspInfo']['segmentMode'] ) {
+			let tcp_flags;
+			if ( rule.tcp_flags.length === 0 ) {
+				tcp_flags = 'ANY';
+			} else if ( rule.tcp_flags.length === 1 ) {
+				tcp_flags = rule.tcp_flags[0];
+			} else if ( rule.tcp_flags.length > 1 ) {
+				if ( rule.tcp_flags[0] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[1]}+${rule.tcp_flags[0]}`;
+				} else if ( rule.tcp_flags[1] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[0]}+${rule.tcp_flags[1]}`;
+				}
+			}
+			table.push(`<tr> <td style="text-align: right">TCP Flags: </td> <td>${tcp_flags}</td> </tr>`);
+		}
+		table.push(`<tr> <td style="text-align: right">Action: </td> <td>${rule.action}</td> </tr>`);
+
+
+		let data = []
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Order:</label><label class="col-sm-8 ">${rule.ruleOrder}</label></div>`);
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Protocol:</label><label class="col-sm-8 ">${rule.protocol}</label></div>`);
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Src IP:</label><label class="col-sm-8 ">${rule.src_ip}</label></div>`);
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Dst IP:</label><label class="col-sm-8 ">${rule.dest_ip}</label></div>`);
+		if ( myObject['inspInfo']['segmentMode'] ) {
+			let tcp_flags;
+			if ( rule.tcp_flags.length === 0 ) {
+				tcp_flags = 'ANY';
+			} else if ( rule.tcp_flags.length === 1 ) {
+				tcp_flags = rule.tcp_flags[0];
+			} else if ( rule.tcp_flags.length > 1 ) {
+				if ( rule.tcp_flags[0] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[1]}+${rule.tcp_flags[0]}`;
+				} else if ( rule.tcp_flags[1] === 'ACK' ) {
+					tcp_flags = `${rule.tcp_flags[0]}+${rule.tcp_flags[1]}`;
+				}
+			}
+			data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">TCP flag:</label><label class="col-sm-8 ">${tcp_flags}</label></div>`);
+		}
+		data.push(`<div class="form-group"><label class="col-sm-4" style="text-align: right">Action:</label><label class="col-sm-8 ">${rule.action}</label></div>`);
+
+		$.gritter.add({
+			title: `<div class="center">${rule.nodeName} - ${rule.interface} - ${rule.in_out} - ${rule.ruleOrder}</div>`,
+			// text: `<div class="row"> <div class="col-xs-12"> <form class="form-horizontal" role="form"> ${data.join('')} </form> </div> </div>`,
+			text: `<table class="table">${table.join('')}</table>`,
+			sticky: true,
+			time: '',
+			class_name: tableColor,
+		});
+	});
+
+	// $(`#tab-${nodeName} div#anomaly-body`).accordion({ collapsible: true, heightStyle: "content", animate: 250, header: ".accordion-header"});
+
+	$(`#tab-${nodeName} ul#anomaly-tree`).shieldTreeView({
+		events: { select: anomalySelectHandler },
+		dataSource: { data: convertAnomalyInfo(block['anomalyInfo']) },
+	});
+	// this.index;
+	function convertAnomalyInfo ( obj ) {
+		let dataList = [];
+
+		_.each(obj, function ( typeData, typeName ) {
+			if ( typeName === 'anomaly' ) return;
+			
+			let anomalyList = new AnomalyTreeData(`${typeName} (${typeData.length})`, true);
+			
+			if ( typeData.length === 0 ) {
+				anomalyList['items'].push(new AnomalyTreeData('null', false, true));
+			} else {
+				_.each(typeData, function ( anomalyData, anomalyIdx ) {
+					anomalyList['items'].push(new AnomalyTreeData(anomalyData));
+				});
+			}
+
+			dataList.push(anomalyList);
+		});
+
+		return dataList;
+		console.log(dataList);
+	}
+
+	function AnomalyTreeData ( name, hasChildren=false, doDisable=false ) {
+		this.text = name;
+		if ( hasChildren ) { this.items = []; }
+		if ( doDisable ) { this.disabled = true; }
+	}
 }
 
 function putVector ( ruleList ) {
