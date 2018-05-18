@@ -39,7 +39,7 @@ function ruleGenerator ( aclObject, geneInfo, ruleNumber=25, rangeSize=0 ) {
 		// let statelessFlag = [['SYN'], ['SYN','ACK'], ['ACK'], ['FIN'], ['ACK','FIN'], ['RST']];
 		let statelessFlag = ['SYN', 'SYN,ACK', 'ACK', 'FIN', 'ACK,FIN', 'RST'];
 		while ( ruleNumber > 0 ) {
-			let iii = 500;
+			let iii = 2;
 			let count, maxValue,
 				mode = randomValue(0, iii-1) % iii;
 			switch ( mode ) {
