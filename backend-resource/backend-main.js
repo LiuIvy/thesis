@@ -899,13 +899,15 @@ function createAnomalyChart ( event ) {
 
 				let hopKeyArray = Object.keys(route);
 				_.each(route, function ( hop, hopKey ) {
-					//console.log('hopKey',hopKey);
+					console.log('hop',hop,'hopKey',hopKey);
 					if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
 					let [fw, eth, io] = hopKey.split('_');
 					$(`<td>${fw}<br>${eth}<br>${io}</td>`).appendTo(`#tab-${nodeName} tr#thead-${routeID}`);
 
 					_.each(hop['ruleList'], function ( rule, ruleIdx ) {
 						let ruleTR = $(`#tab-${nodeName} tbody#tbody-${routeID}`).children()[ruleIdx];
+						console.log('ruleTR',ruleTR);
+						//console.log('hop',hop,'rule',rule,'nodeName',nodeName,'routeID',routeID,'ruleIdx',ruleIdx);
 						if ( !ruleTR ) {
 							ruleTR = document.createElement('tr');
 							$(ruleTR).appendTo(`#tab-${nodeName} tbody#tbody-${routeID}`);
@@ -919,10 +921,11 @@ function createAnomalyChart ( event ) {
 							let ruleTD;
 							if ( i !== hopKeyArray.indexOf(hopKey) ) {
 								ruleTD = $(ruleTR).children()[i];
-								// console.log(ruleTD);
+								console.log(ruleTD);
 								if ( !ruleTD ) {
 									ruleTD = `<td></td>`;
 									$(ruleTD).appendTo(ruleTR);
+									console.log('ruleTD',ruleTD,'ruleTR',ruleTR);
 								}
 							} else {
 								ruleTD = `<td style="background-color: ${ruleColor}">
@@ -931,7 +934,7 @@ function createAnomalyChart ( event ) {
 								</a></td>`;
 								$(ruleTD).appendTo(ruleTR);
 							}
-						}
+						}//填rule,if red,else green
 					});
 					//console.log('hopKeyArray',hopKeyArray);
 				});
@@ -1107,10 +1110,10 @@ function depictResult () {
 							</div>
 						</div>
 						<div class="row"> 
-							<div class="col-xs-12" id="block-content"></div> 
+							<div class="col-xs-12" id="portInfo"></div> 
 						</div>
 						<div class="row"> 
-							<div class="col-xs-12" id="portInfo"></div> 
+							<div class="col-xs-12" id="block-content"></div> 
 						</div>
 					</div>`;
 
@@ -1252,6 +1255,8 @@ function redOrGreen (event) {
 	let curNode = myObject['aclObject'][nodeName];
 	let index = this.index;
 	console.log('thisindex',index);
+	$(`div#block-content`).empty();
+	$(`div#portInfo`).empty();
 	console.log('block',block);
 	if(block['anomalyInfo']['anomaly']==true){
 		console.log('event',event);
@@ -1914,6 +1919,7 @@ function depictportResult (portleaf, thisindex, curNode)
 
 function createPortChart ( copyData,event) {
 	//console.log('event2',event);	
+	var index=event.point.series.index;
 	console.log(event.point.series.index);
 	//console.log('dataList',copyData[0]);
 	let nodeName = copyData[0]['ruleList'][0].nodeName;
@@ -1928,37 +1934,54 @@ function createPortChart ( copyData,event) {
 	$($chart).appendTo(`#tab-${nodeName} div#portInfo`);
 	
 
-	$(`#tab-${nodeName} span#src-range`).text(`${nodeName}`);
-	$(`#tab-${event.point.series.index} span#dest-range`).text(`${event.point.series.index}`);
+	$(`#tab-${nodeName} span#firewall`).text(`${nodeName}`);
+	$(`#tab-${nodeName} span#block`).text(`block${event.point.series.index}`);
 	$(`<table id="rule-table" class="table table-bordered table-hover"></table>`).appendTo(`#tab-${nodeName} div#rule-data`);
 	
+	let tbody = document.createElement('tbody');
+	tbody.id = index;
+	$(tbody).appendTo(`#tab-${nodeName} table#rule-table`);
 	_.each(block['ruleList'], function ( rule, ruleIdx ) {
+
 		console.log('rule',rule);
-		let tbody = document.createElement('tbody');
-		$(tbody).appendTo(`#tab-${nodeName} table#rule-table`);
+		
+		let ruleTR = $(`#tab-${nodeName} tbody#tbody-${index}`).children()[ruleIdx];
+		console.log('ruleTR',ruleTR);
+		//console.log('hop',hop,'rule',rule,'nodeName',nodeName,'routeID',routeID,'ruleIdx',ruleIdx);
+		if ( !ruleTR ) {
+			ruleTR = document.createElement('tr');
+			$(ruleTR).appendTo(`#tab-${nodeName} tbody#${index}`);
+		}
+
 
 		let hopKeyArray = Object.keys(rule);
 	
 		let ruleColor = '#90ed7d';
 		if ( rule.action === 'DROP' ) { ruleColor = '#f45b5b'; }
 
-		for (let i=0; i<=hopKeyArray.indexOf(hopKey); i++) {
+		// for (let i=0; i<=block['ruleList'].length; i++) {
 			let ruleTD;
-			if ( i !== hopKeyArray.indexOf(hopKey) ) {
-				ruleTD = $(ruleTR).children()[i];
+		// 	if ( i !== block['ruleList'].length ) {
+				// ruleTD = $(ruleTR).children()[i];
 				// console.log(ruleTD);
-				if ( !ruleTD ) {
-					ruleTD = `<td></td>`;
-					$(ruleTD).appendTo(ruleTR);
-				}
-			} else {
-				ruleTD = `<td style="background-color: ${ruleColor}">
-				<a class="show-rule-btn" title="Click to show rule detial">
-				<label>${rule.ruleOrder}</label>
-				</a></td>`;
-				$(ruleTD).appendTo(ruleTR);
-			}
+		if ( !ruleTD ) {
+			ruleTD = `<td style="background-color: ${ruleColor}">
+		<a class="show-rule-btn" title="Click to show rule detial">
+		<label>R${rule.listOrder}</label>
+		</a></td>`;
+			$(ruleTD).appendTo(ruleTR);
+			console.log('ruleTD',ruleTD,'ruleTR',ruleTR);
 		}
+			// } 
+			// else {
+			// 	ruleTD = `<td style="background-color: ${ruleColor}">
+			// 	<a class="show-rule-btn" title="Click to show rule detial">
+			// 	<label>R${rule.listOrder}</label>
+			// 	</a></td>`;
+			// 	$(ruleTD).appendTo(ruleTR);
+			// 	//填rule
+			// }
+		// }
 
 	});
 
