@@ -1802,7 +1802,7 @@ function depictportResult (portleaf, thisindex, curNode)
 	if ( $('#page-body').hasClass('hidden') ) $('#page-body').removeClass('hidden');
 	$('#port-chart-tabs').empty();
 	$('#port-tab-content').empty();
-	
+	$(`div#block-content`).empty();
 	let chartID = `chart-${thisindex}`;
 
 	if ( $(`#chart-${thisindex}`).length == 0) {
@@ -1867,6 +1867,7 @@ function depictportResult (portleaf, thisindex, curNode)
 						click: function(event){
 								console.log('evevnt',event);
 								createPortChart(dataList,event);
+								$(`div#block-content`).empty();
 							}
 					}
 				}
