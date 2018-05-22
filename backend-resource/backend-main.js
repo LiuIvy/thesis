@@ -932,10 +932,8 @@ function createAnomalyChart ( event ) {
 								$(ruleTD).appendTo(ruleTR);
 							}
 						}
-
-
 					});
-					console.log('hopKeyArray',hopKeyArray);
+					//console.log('hopKeyArray',hopKeyArray);
 				});
 			});
 
@@ -1937,47 +1935,31 @@ function createPortChart ( copyData,event) {
 	_.each(block['ruleList'], function ( rule, ruleIdx ) {
 		console.log('rule',rule);
 		let tbody = document.createElement('tbody');
-		$(tbody).appendTo(`#tab-${nodeName} table#path-table`);
+		$(tbody).appendTo(`#tab-${nodeName} table#rule-table`);
 
 		let hopKeyArray = Object.keys(rule);
-		_.each(rule, function ( hop, hopKey ) {
+	
+		let ruleColor = '#90ed7d';
+		if ( rule.action === 'DROP' ) { ruleColor = '#f45b5b'; }
 
-
-
-
-
-
-			_.each(hop['ruleList'], function ( rule, ruleIdx ) {
-				
-
-
-				let ruleColor = '#90ed7d';
-				if ( rule.action === 'DROP' ) { ruleColor = '#f45b5b'; }
-
-				for (let i=0; i<=hopKeyArray.indexOf(hopKey); i++) {
-					let ruleTD;
-					if ( i !== hopKeyArray.indexOf(hopKey) ) {
-						ruleTD = $(ruleTR).children()[i];
-						// console.log(ruleTD);
-						if ( !ruleTD ) {
-							ruleTD = `<td></td>`;
-							$(ruleTD).appendTo(ruleTR);
-						}
-					} else {
-						ruleTD = `<td style="background-color: ${ruleColor}">
-						<a class="show-rule-btn" title="Click to show rule detial">
-						<label>${rule.ruleOrder}</label>
-						</a></td>`;
-						$(ruleTD).appendTo(ruleTR);
-					}
+		for (let i=0; i<=hopKeyArray.indexOf(hopKey); i++) {
+			let ruleTD;
+			if ( i !== hopKeyArray.indexOf(hopKey) ) {
+				ruleTD = $(ruleTR).children()[i];
+				// console.log(ruleTD);
+				if ( !ruleTD ) {
+					ruleTD = `<td></td>`;
+					$(ruleTD).appendTo(ruleTR);
 				}
+			} else {
+				ruleTD = `<td style="background-color: ${ruleColor}">
+				<a class="show-rule-btn" title="Click to show rule detial">
+				<label>${rule.ruleOrder}</label>
+				</a></td>`;
+				$(ruleTD).appendTo(ruleTR);
+			}
+		}
 
-
-			});
-		});
-			
-
-		
 	});
 
 
