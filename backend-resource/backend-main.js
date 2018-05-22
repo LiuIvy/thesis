@@ -857,24 +857,49 @@ function createAnomalyChart ( event ) {
 
 				let routeHeader, routeID = `${flagKeyID}-${exchgKey}-${routeIdx}`;
 				if( exchgKey === 'false' ) {
-					routeHeader = `<tr> <td class="center"> <span class="action-buttons" style="float: left;"> 
-					<a href="#" id="${routeID}" class="show-details-btn" title="Show Details">
-					<i class="ace-icon fa fa-plus-square-o"></i> </a> </span>
-					${ routeTitle.join('  <i class="ace-icon fa fa-long-arrow-right"></i>  ')}  </td> </tr>`;
+					routeHeader = `
+					<tr> 
+						<td class="center"> 
+							<span class="action-buttons" style="float: left;"> 
+								<a href="#" id="${routeID}" class="show-details-btn" title="Show Details">
+									<i class="ace-icon fa fa-plus-square-o"></i> 
+								</a> 
+							</span>
+							${ routeTitle.join('  <i class="ace-icon fa fa-long-arrow-right"></i>  ')}  
+						</td> 
+					</tr>`;
 				} else {
-					routeHeader = `<tr> <td class="center"> <span class="action-buttons" style="float: left;"> 
-					<a href="#" id="${routeID}" class="show-details-btn" title="Show Details">
-					<i class="ace-icon fa fa-plus-square-o"></i> </a> </span>
-					${ routeTitle.join('  <i class="ace-icon fa fa-long-arrow-left"></i>  ')} </td> </tr>`;
+					routeHeader = `
+					<tr> 
+						<td class="center"> 
+							<span class="action-buttons" style="float: left;"> 
+								<a href="#" id="${routeID}" class="show-details-btn" title="Show Details">
+									<i class="ace-icon fa fa-plus-square-o"></i> 
+								</a> 
+							</span>
+							${ routeTitle.join('  <i class="ace-icon fa fa-long-arrow-left"></i>  ')} 
+						</td> 
+					</tr>`;
 				}
-				let routeBody = `<tr class="detail-row"> <td colspan="8"> <div class="table-detail">
-				<table class="table table-bordered table-hover"> <thead> <tr id="thead-${routeID}"> </tr> </thead>
-				<tbody id="tbody-${routeID}"> </tbody> </table> </div> </td> </tr>`;
+				let routeBody = `
+				<tr class="detail-row"> 
+					<td colspan="8"> 
+						<div class="table-detail">
+							<table class="table table-bordered table-hover"> 
+								<thead> 
+									<tr id="thead-${routeID}"> </tr> 
+								</thead>
+								<tbody id="tbody-${routeID}"> </tbody> 
+							</table> 
+						</div>
+					</td> 
+				</tr>`;
 
 				$(tbody).append(routeHeader, routeBody);
 
 				let hopKeyArray = Object.keys(route);
 				_.each(route, function ( hop, hopKey ) {
+					//console.log('hopKey',hopKey);
 					if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
 					let [fw, eth, io] = hopKey.split('_');
 					$(`<td>${fw}<br>${eth}<br>${io}</td>`).appendTo(`#tab-${nodeName} tr#thead-${routeID}`);
@@ -910,6 +935,7 @@ function createAnomalyChart ( event ) {
 
 
 					});
+					console.log('hopKeyArray',hopKeyArray);
 				});
 			});
 
@@ -1021,15 +1047,17 @@ function createAnomalyChart ( event ) {
 	});
 	// this.index;
 	function convertAnomalyInfo ( obj ) {
+		//console.log('N3 obj',obj );
 		let dataList = [];
 
 		_.each(obj, function ( typeData, typeName ) {
 			if ( typeName === 'anomaly' ) return;
-			
+			//console.log('N3 typeData',typeData, 'N3 typeName',typeName);
 			let anomalyList = new AnomalyTreeData(`${typeName} (${typeData.length})`, true);
 			
 			if ( typeData.length === 0 ) {
 				anomalyList['items'].push(new AnomalyTreeData('null', false, true));
+				//console.log('N3 anomalyList',anomalyList);
 			} else {
 				_.each(typeData, function ( anomalyData, anomalyIdx ) {
 					anomalyList['items'].push(new AnomalyTreeData(anomalyData));
@@ -1039,8 +1067,8 @@ function createAnomalyChart ( event ) {
 			dataList.push(anomalyList);
 		});
 
+		//console.log('N3 dataList',dataList);
 		return dataList;
-		console.log(dataList);
 	}
 
 	function AnomalyTreeData ( name, hasChildren=false, doDisable=false ) {
@@ -1082,6 +1110,9 @@ function depictResult () {
 						</div>
 						<div class="row"> 
 							<div class="col-xs-12" id="block-content"></div> 
+						</div>
+						<div class="row"> 
+							<div class="col-xs-12" id="portInfo"></div> 
 						</div>
 					</div>`;
 
@@ -1181,7 +1212,7 @@ function depictResult () {
 
 function anomalySelectHandler ( e ) {
 	// console.log('something select');
-	// console.log(e);
+	console.log(e);
 	let $target = e.element[0].textContent;
 	if ( $target !== $target.split(' ')[0] ) {
 		// console.log('not anomaly', $target.split(' ')[0]);
@@ -1764,7 +1795,7 @@ function checkPortAnomaly(portList,portBlock){
 }
 	//console.log('portLeaf',node.nodeName,portLeaf);
 function depictportResult (portleaf, thisindex, curNode) 
-{	console.log('thisindex',thisindex);
+{	//console.log('thisindex',thisindex);
 	if ( $('#page-body').hasClass('hidden') ) $('#page-body').removeClass('hidden');
 	$('#port-chart-tabs').empty();
 	$('#port-tab-content').empty();
@@ -1827,7 +1858,14 @@ function depictportResult (portleaf, thisindex, curNode)
 					lineWidth: 0.5,
 					marker: { enabled: false, states: { hover: { enabled: false } } },
 					cursor: 'pointer',
-					'click': createPortChart(dataList,event) ,
+
+					// events : { click:createPortChart },
+					events : { 
+						click: function(event){
+								console.log('evevnt',event);
+								createPortChart(dataList,event);
+							}
+					}
 				}
 			},
 			xAxis: {
@@ -1844,6 +1882,8 @@ function depictportResult (portleaf, thisindex, curNode)
 				ceiling: 655535,
 			}
 		};
+		//var copyData = clone(dataList);
+		console.log('event',event);
 		chart.series = createSeries(dataList);
 		Highcharts.chart(chartID, chart);
 	}
@@ -1874,26 +1914,71 @@ function depictportResult (portleaf, thisindex, curNode)
 	}
 }
 
-function createPortChart ( dataList, event) {
+function createPortChart ( copyData,event) {
+	//console.log('event2',event);	
 	console.log(event.point.series.index);
-	console.log('dataList',dataList);
-	let nodeName = (event.point.series.chart.renderTo.id).split('-')[1];
-	console.log('nodeName',nodeName);
-	let block = dataList[event.point.series.index];
+	//console.log('dataList',copyData[0]);
+	let nodeName = copyData[0]['ruleList'][0].nodeName;
+	//console.log('nodeName',nodeName);
+	let block = copyData[event.point.series.index];
 	console.log('block', block);
 
 	$.gritter.removeAll();
 	//$(`#tab-${nodeName} div#block-content`).empty();
-	$(`div#block-content`).empty();
+	$(`div#portInfo`).empty();
 	let $chart = fs.readFileSync(`${__dirname}/templates/port-information.html`, 'utf-8').toString();
 	$($chart).appendTo(`#tab-${nodeName} div#portInfo`);
 	
 
-	$(`#tab-${nodeName} span#nodeName`).text(`${nodeName}`);
-	
+	$(`#tab-${nodeName} span#src-range`).text(`${nodeName}`);
+	$(`#tab-${event.point.series.index} span#dest-range`).text(`${event.point.series.index}`);
 	$(`<table id="rule-table" class="table table-bordered table-hover"></table>`).appendTo(`#tab-${nodeName} div#rule-data`);
 	
-	
+	_.each(block['ruleList'], function ( rule, ruleIdx ) {
+		console.log('rule',rule);
+		let tbody = document.createElement('tbody');
+		$(tbody).appendTo(`#tab-${nodeName} table#path-table`);
+
+		let hopKeyArray = Object.keys(rule);
+		_.each(rule, function ( hop, hopKey ) {
+
+
+
+
+
+
+			_.each(hop['ruleList'], function ( rule, ruleIdx ) {
+				
+
+
+				let ruleColor = '#90ed7d';
+				if ( rule.action === 'DROP' ) { ruleColor = '#f45b5b'; }
+
+				for (let i=0; i<=hopKeyArray.indexOf(hopKey); i++) {
+					let ruleTD;
+					if ( i !== hopKeyArray.indexOf(hopKey) ) {
+						ruleTD = $(ruleTR).children()[i];
+						// console.log(ruleTD);
+						if ( !ruleTD ) {
+							ruleTD = `<td></td>`;
+							$(ruleTD).appendTo(ruleTR);
+						}
+					} else {
+						ruleTD = `<td style="background-color: ${ruleColor}">
+						<a class="show-rule-btn" title="Click to show rule detial">
+						<label>${rule.ruleOrder}</label>
+						</a></td>`;
+						$(ruleTD).appendTo(ruleTR);
+					}
+				}
+
+
+			});
+		});
+			
+
+		
+	});
 
 
 	$('.show-rule-btn').on('click', function(e) {
@@ -1968,38 +2053,61 @@ function createPortChart ( dataList, event) {
 		});
 	});
 
-	// $(`#tab-${nodeName} div#anomaly-body`).accordion({ collapsible: true, heightStyle: "content", animate: 250, header: ".accordion-header"});
+	$(`#tab-${nodeName} div#anomaly-body`).accordion({ collapsible: true, heightStyle: "content", animate: 250, header: ".accordion-header"});
 
-	$(`#tab-${nodeName} ul#anomaly-tree`).shieldTreeView({
+	$(`#tab-${nodeName} ul#anomaly-port`).shieldTreeView({
 		events: { select: anomalySelectHandler },
 		dataSource: { data: convertAnomalyInfo(block['anomalyInfo']) },
 	});
 	// this.index;
 	function convertAnomalyInfo ( obj ) {
+		//console.log('My obj',obj);
 		let dataList = [];
 
 		_.each(obj, function ( typeData, typeName ) {
+			//console.log('My typeData',typeData, 'My typeName',typeName);
 			if ( typeName === 'anomaly' ) return;
 			
 			let anomalyList = new AnomalyTreeData(`${typeName} (${typeData.length})`, true);
-			
+			//console.log('anomalyList',anomalyList);
 			if ( typeData.length === 0 ) {
 				anomalyList['items'].push(new AnomalyTreeData('null', false, true));
 			} else {
 				_.each(typeData, function ( anomalyData, anomalyIdx ) {
-					anomalyList['items'].push(new AnomalyTreeData(anomalyData));
+					//console.log("anomalyData2",anomalyData);
+					if(anomalyData.listOrder== undefined){
+						
+							
+						anomalyList['items'].push(new hasAnomalyTreeData(anomalyData));
+						
+					}
+					else{
+						var anomalyorder=`R${anomalyData.listOrder}`;
+						anomalyList['items'].push(new AnomalyTreeData(anomalyorder));
+					}
 				});
 			}
 
 			dataList.push(anomalyList);
 		});
 
+		//console.log('My dataList',dataList);
 		return dataList;
-		console.log(dataList);
 	}
 
 	function AnomalyTreeData ( name, hasChildren=false, doDisable=false ) {
 		this.text = name;
+		if ( hasChildren ) { this.items = []; }
+		if ( doDisable ) { this.disabled = true; }
+	}
+	function hasAnomalyTreeData ( name, hasChildren=false, doDisable=false ) {
+		console.log("name",name);
+		var nameorder,array=[];
+		_.each(name,function(rulename,rulenameIdx){
+			nameorder=rulename.listOrder;
+			array.push(`R${nameorder}`);
+		});	
+		this.text = array;
 		if ( hasChildren ) { this.items = []; }
 		if ( doDisable ) { this.disabled = true; }
 	}
