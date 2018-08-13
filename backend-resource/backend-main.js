@@ -1250,7 +1250,8 @@ $('#test-button').on('click', function(){
 	return false;
 });
 
-/*----------------------------------------------------------------------------------*/
+/*----------------------------------------------PORT-----------------------------------------------
+------------------------------------------------PORT----------------------------------------------*/
 function redOrGreen (event) {
 	let nodeName = (this.chart.renderTo.id).split('-')[1];
 	let block = myObject['aclObject'][nodeName]['ARARTree']['leafList'][this.index];
