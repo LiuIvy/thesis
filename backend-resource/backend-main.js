@@ -969,12 +969,14 @@ function createAnomalyChart ( event ) {
 	});
 
 	$('.show-rule-btn').on('click', function(e) {
-		console.log('show-rule-btn');
+		//console.log('show-rule-btn');
 		e.preventDefault();
+		//console.log('e',e);
 		let ruleOrder = $(this).find('label').text();
+		//console.log('ruleOrder',ruleOrder);
 		let [fw, eth, io] = $($(this).closest('tbody')).prev().find('td')[$(this).parent()[0].cellIndex].innerHTML.split('<br>');
 		let rule = myObject['aclObject'][fw]['ruleObject'][eth][io][ruleOrder];
-		
+		//console.log('rule',rule,'fw, eth, io',fw, eth, io);
 		let tableColor;
 		if ( rule.action === 'ACCEPT' ) {
 			tableColor = 'gritter-success';
@@ -1263,6 +1265,7 @@ function redOrGreen (event) {
 		createAnomalyChart(event);
 	}
 	else			
+
 		doPort(block,curNode,index);
 			
 		
@@ -1272,22 +1275,24 @@ function doPort(portBlock,curNode,index){
 	var portExtract = portExtractor(portBlock['ruleList']);
 	var portVector = [putVector(portExtract[0]), putVector(portExtract[1])];
 	var mergedVector = merge(portVector);
-	//console.log('mergedVector',mergedVector);
+	console.log('mergedVector',mergedVector);
 	var andvector = and(mergedVector);
+	//console.log('andvector',andvector);
 	portBlock['portLeaf'] = bitOrder(andvector, portBlock['ruleList'] ,curNode['ruleList']);
 	//console.log('retPortList', retPortList);
 	//checkPortAnomaly(retPortList);
 	//console.log('portBlock',portBlock['routeObject']);
 	
-	let startTime = process.hrtime();
+	
 	//checkPortAnomaly(portBlock['portLeaf'], portBlock);
+	let startTime = process.hrtime();
 	anomaly(portBlock['portLeaf']);
 	let createTime = process.hrtime(startTime);
 	console.log(`anomaly: ` + (createTime[0] + createTime[1]/1e9));
 	//console.log('thisindex',index);
 	//console.log('leaf',portleaf[0]['anomalyInfo']);
 
-	depictportResult(portBlock['portLeaf'], index, curNode);
+	//depictportResult(portBlock['portLeaf'], index, curNode);
 
 }
 function anomaly(portleaf){
@@ -1299,6 +1304,7 @@ function anomaly(portleaf){
 			'redundancy': [],
 			'normal' : [],			
 		};
+		
 		//leaf['ruleList'].forEach(function(rule,ruleCount){
 		if( leaf['ruleList'].length > 1){
 			for(var i=0 ; i < leaf['ruleList'].length ; i++){
@@ -1314,488 +1320,488 @@ function anomaly(portleaf){
 			}				
 		}
 		else{
-			console.log(leaf['ruleList'].length);
+			//console.log(leaf['ruleList'].length);
 			leaf['anomalyInfo']['normal'].push(leaf['ruleList'][0]);	
 		}
 		
 		//});
 	});
 	//console.log('leaf',leaf);
-	console.log('portleaf',portleaf);
+	//console.log('portleaf',portleaf);
 	return portleaf;
 
 }
-function checkPortAnomaly(portList,portBlock){
-	// fill all the rule in the leafNode to routeObject
-	//console.log('portList',portList);
-	console.log('hello');
-	let startTime = process.hrtime();
-		_.each(portList,function(leaf,leafCount){
-			leaf['anomalyInfo'] = {
-				'anomaly': false,
-				'shadowing': [],
-				'redundancy': [],
-				'lost': [],
-				'conflict': [],
-				'consistent': [],
+// function checkPortAnomaly(portList,portBlock){
+// 	// fill all the rule in the leafNode to routeObject
+// 	//console.log('portList',portList);
+// 	console.log('hello');
+// 	let startTime = process.hrtime();
+// 		_.each(portList,function(leaf,leafCount){
+// 			leaf['anomalyInfo'] = {
+// 				'anomaly': false,
+// 				'shadowing': [],
+// 				'redundancy': [],
+// 				'lost': [],
+// 				'conflict': [],
+// 				'consistent': [],
 
-			};
-			leaf['routeObject'] = clone(portBlock['oriRouteObject'][leaf['flag']]);
-			//console.log(leaf);
-			if ( leaf['flag'] ) {
-			_.each(leaf['ruleList'], function ( rule, ruleIdx ) {
-				if ( rule['tcp_flags'].length === 0 ) {
-					_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
-						_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) { //flagRoute(ANY),rule.isExchange(true&false),route(Object)
-							if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
-								route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
-							}
-						});
-					});
-				} else if ( rule['tcp_flags'].length === 1 ) {
-					_.each(leaf['routeObject'][rule.tcp_flags[0]][rule.isExchange], function ( route, routeIdx ) {
-						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
-							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
-						}
-					});
-				} else {
-					let tcp_flags;
-					if ( rule['tcp_flags'][0] === 'ACK' ) {
-						tcp_flags = `${rule['tcp_flags'][1]}+${rule['tcp_flags'][0]}`;
-					} else {
-						tcp_flags = `${rule['tcp_flags'][0]}+${rule['tcp_flags'][1]}`;
-					}
-					_.each(leaf['routeObject'][tcp_flags][rule.isExchange], function ( route, routeIdx ) {
-						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
-							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
-						}
-					});
-				}
-			});
-		} else {
-			_.each(leaf['ruleList'], function ( rule, ruleIdx ) {
-				_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
-					_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) {
-						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
-							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
-						}
-					});
-				});
-			});
-		}
+// 			};
+// 			leaf['routeObject'] = clone(portBlock['oriRouteObject'][leaf['flag']]);
+// 			//console.log(leaf);
+// 			if ( leaf['flag'] ) {
+// 			_.each(leaf['ruleList'], function ( rule, ruleIdx ) {
+// 				if ( rule['tcp_flags'].length === 0 ) {
+// 					_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
+// 						_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) { //flagRoute(ANY),rule.isExchange(true&false),route(Object)
+// 							if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
+// 								route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
+// 							}
+// 						});
+// 					});
+// 				} else if ( rule['tcp_flags'].length === 1 ) {
+// 					_.each(leaf['routeObject'][rule.tcp_flags[0]][rule.isExchange], function ( route, routeIdx ) {
+// 						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
+// 							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
+// 						}
+// 					});
+// 				} else {
+// 					let tcp_flags;
+// 					if ( rule['tcp_flags'][0] === 'ACK' ) {
+// 						tcp_flags = `${rule['tcp_flags'][1]}+${rule['tcp_flags'][0]}`;
+// 					} else {
+// 						tcp_flags = `${rule['tcp_flags'][0]}+${rule['tcp_flags'][1]}`;
+// 					}
+// 					_.each(leaf['routeObject'][tcp_flags][rule.isExchange], function ( route, routeIdx ) {
+// 						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
+// 							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
+// 						}
+// 					});
+// 				}
+// 			});
+// 		} else {
+// 			_.each(leaf['ruleList'], function ( rule, ruleIdx ) {
+// 				_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
+// 					_.each(flagRoute[rule.isExchange], function ( route, routeIdx ) {
+// 						if ( route.hasOwnProperty(`${rule.nodeName}_${rule.interface}_${rule.in_out}`) ) {
+// 							route[`${rule.nodeName}_${rule.interface}_${rule.in_out}`]['ruleList'].push(rule);
+// 						}
+// 					});
+// 				});
+// 			});
+// 		}
 		
 		
-		// check anomaly of the leafNode by routeObject
-		// check shadowing, redundancy, lost and conflict
-		let anomalyLocate;
-		_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
-			_.each(flagRoute, function ( exchg, exchgKey ) {
-				_.each(exchg, function ( route, routeIdx ) {
-					route['sameAction'] = true;
-					let hopKeyArray = Object.keys(route);
+// 		// check anomaly of the leafNode by routeObject
+// 		// check shadowing, redundancy, lost and conflict
+// 		let anomalyLocate;
+// 		_.each(leaf['routeObject'], function ( flagRoute, flagKey ) {
+// 			_.each(flagRoute, function ( exchg, exchgKey ) {
+// 				_.each(exchg, function ( route, routeIdx ) {
+// 					route['sameAction'] = true;
+// 					let hopKeyArray = Object.keys(route);
 
-					_.each(route, function ( hop, hopKey ) {
-						if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
-						hop['sameAction'] = true;
-						//console.log('hop',hop['ruleList'].length);
-						if ( hop['ruleList'].length === 0 ) {
-							hop['action'] = undefined;
-							hop['sameAction'] = false;
-							route['action'] = undefined;
-							route['sameAction'] = false;
-							leaf['anomalyInfo']['anomaly'] = true;
-							leaf['anomalyInfo']['lost'].push([`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`]);
-						} else {
-							hop['action'] = hop['ruleList'][0]['action'];
+// 					_.each(route, function ( hop, hopKey ) {
+// 						if ( (hopKey === 'sameAction') || (hopKey === 'action') ) return;
+// 						hop['sameAction'] = true;
+// 						//console.log('hop',hop['ruleList'].length);
+// 						if ( hop['ruleList'].length === 0 ) {
+// 							hop['action'] = undefined;
+// 							hop['sameAction'] = false;
+// 							route['action'] = undefined;
+// 							route['sameAction'] = false;
+// 							leaf['anomalyInfo']['anomaly'] = true;
+// 							leaf['anomalyInfo']['lost'].push([`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`]);
+// 						} else {
+// 							hop['action'] = hop['ruleList'][0]['action'];
 
-							if ( hop['ruleList'].length > 1 ) {
-								_.each(hop['ruleList'], function ( rule, ruleIdx ) {
-									if ( ruleIdx !== 0 ) {
-										anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`];
-										if ( rule['action'] !== hop['ruleList'][0]['action'] ) {
-											// leaf['anomalyInfo']['anomaly'] = true;
-											hop['sameAction'] = false;
-											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['shadowing']) ) {
-												leaf['anomalyInfo']['shadowing'].push(anomalyLocate);
-											}
-										} else {
-											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['redundancy']) ) {
-												leaf['anomalyInfo']['redundancy'].push(anomalyLocate);
-											}
-										}
-									}
-								});
+// 							if ( hop['ruleList'].length > 1 ) {
+// 								_.each(hop['ruleList'], function ( rule, ruleIdx ) {
+// 									if ( ruleIdx !== 0 ) {
+// 										anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`];
+// 										if ( rule['action'] !== hop['ruleList'][0]['action'] ) {
+// 											// leaf['anomalyInfo']['anomaly'] = true;
+// 											hop['sameAction'] = false;
+// 											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['shadowing']) ) {
+// 												leaf['anomalyInfo']['shadowing'].push(anomalyLocate);
+// 											}
+// 										} else {
+// 											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['redundancy']) ) {
+// 												leaf['anomalyInfo']['redundancy'].push(anomalyLocate);
+// 											}
+// 										}
+// 									}
+// 								});
 
-								// if ( hop['sameAction'] === true ) {
-								// 	// leaf['anomalyInfo']['anomaly'] = true;
-								// 	leaf['anomalyInfo']['redundancy'].push(`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`);
-								// }
-							}
-						}
+// 								// if ( hop['sameAction'] === true ) {
+// 								// 	// leaf['anomalyInfo']['anomaly'] = true;
+// 								// 	leaf['anomalyInfo']['redundancy'].push(`${flagKey}-${exchgKey}-${routeIdx}-${hopKey}`);
+// 								// }
+// 							}
+// 						}
 
-						let hopKeyIdx = hopKeyArray.indexOf(hopKey);
-						if ( hopKeyIdx !== 0 ) {
-							if ( hop['action'] !== route[hopKeyArray[hopKeyIdx-1]]['action'] ) {
-								route['action'] = undefined;
-								route['sameAction'] = false;
-								anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}`];
-								if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-									leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-								}
-								// leaf['anomalyInfo']['conflict'].push(`${flagKey}-${exchgKey}-${routeIdx}`);
-							}
-						}
+// 						let hopKeyIdx = hopKeyArray.indexOf(hopKey);
+// 						if ( hopKeyIdx !== 0 ) {
+// 							if ( hop['action'] !== route[hopKeyArray[hopKeyIdx-1]]['action'] ) {
+// 								route['action'] = undefined;
+// 								route['sameAction'] = false;
+// 								anomalyLocate = [`${flagKey}-${exchgKey}-${routeIdx}`];
+// 								if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 									leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 								}
+// 								// leaf['anomalyInfo']['conflict'].push(`${flagKey}-${exchgKey}-${routeIdx}`);
+// 							}
+// 						}
 
-					});	//	hop
+// 					});	//	hop
 
-					if ( route['sameAction'] === true ) {
-						route['action'] = route[hopKeyArray[0]]['action'];
-					}
+// 					if ( route['sameAction'] === true ) {
+// 						route['action'] = route[hopKeyArray[0]]['action'];
+// 					}
 
-				});	//	route
-			});	//	exchg
-		});	//	flagRoute
-		// check consistent
+// 				});	//	route
+// 			});	//	exchg
+// 		});	//	flagRoute
+// 		// check consistent
 
 		
-		if ( leaf['flag'] ) {
-			let exchgKeyArray = ['false', 'true', 'false'];
-			let flagKeyArray = Object.keys(leaf['routeObject']);
-			_.each(leaf['routeObject']['SYN'], function ( exchgS, exchgSKey ) {
-				_.each(exchgS, function ( routeS, routeSIdx ) {
-					if ( !routeS['sameAction'] ) return;
-					let tarExchgSAKey = exchgKeyArray[exchgKeyArray.indexOf(exchgSKey) + 1];
+// 		if ( leaf['flag'] ) {
+// 			let exchgKeyArray = ['false', 'true', 'false'];
+// 			let flagKeyArray = Object.keys(leaf['routeObject']);
+// 			_.each(leaf['routeObject']['SYN'], function ( exchgS, exchgSKey ) {
+// 				_.each(exchgS, function ( routeS, routeSIdx ) {
+// 					if ( !routeS['sameAction'] ) return;
+// 					let tarExchgSAKey = exchgKeyArray[exchgKeyArray.indexOf(exchgSKey) + 1];
 
-					// check for SYN+ACK
-					_.each(leaf['routeObject']['SYN+ACK'][tarExchgSAKey], function ( routeSA, routeSAIdx ) {
-						if ( !routeSA['sameAction'] ) return;
-						if ( routeSA['action'] === routeS['action'] ) {
-							// check for ACK
-							_.each(leaf['routeObject']['ACK']['false'], function ( routeAF, routeAFIdx ) {
-								if ( !routeAF['sameAction'] )  return;
-								_.each(leaf['routeObject']['ACK']['true'], function ( routeAT, routeATIdx ) {
-									if ( !routeAT['sameAction'] )  return;
-									if ( routeAF['action'] === routeAT['action'] ) {
-										if ( routeAT['action'] === routeS['action'] ) {
-											// check for FIN series
-											_.each(leaf['routeObject']['FIN'], function ( exchgF, exchgFKey ) {
-												_.each(exchgF, function ( routeF, routeFIdx ) {
-													if ( !routeF['sameAction'] ) return;
-													let tarExchgFAKey = exchgKeyArray[exchgKeyArray.indexOf(exchgFKey) + 1];
+// 					// check for SYN+ACK
+// 					_.each(leaf['routeObject']['SYN+ACK'][tarExchgSAKey], function ( routeSA, routeSAIdx ) {
+// 						if ( !routeSA['sameAction'] ) return;
+// 						if ( routeSA['action'] === routeS['action'] ) {
+// 							// check for ACK
+// 							_.each(leaf['routeObject']['ACK']['false'], function ( routeAF, routeAFIdx ) {
+// 								if ( !routeAF['sameAction'] )  return;
+// 								_.each(leaf['routeObject']['ACK']['true'], function ( routeAT, routeATIdx ) {
+// 									if ( !routeAT['sameAction'] )  return;
+// 									if ( routeAF['action'] === routeAT['action'] ) {
+// 										if ( routeAT['action'] === routeS['action'] ) {
+// 											// check for FIN series
+// 											_.each(leaf['routeObject']['FIN'], function ( exchgF, exchgFKey ) {
+// 												_.each(exchgF, function ( routeF, routeFIdx ) {
+// 													if ( !routeF['sameAction'] ) return;
+// 													let tarExchgFAKey = exchgKeyArray[exchgKeyArray.indexOf(exchgFKey) + 1];
 													
-													_.each(leaf['routeObject']['FIN+ACK'][tarExchgFAKey], function ( routeFA, routeFAIdx ) {
-														if ( !routeFA['sameAction'] ) return;
-														if ( routeFA['action'] === routeF['action'] ) {
-															if ( routeFA['action'] === routeS['action'] ) {
-																// check for RST
-																_.each(leaf['routeObject']['RST'], function ( exchgR, exchgRKey ) {
-																	_.each(exchgR, function ( routeR, routeRIdx ) {
-																		if ( !routeR['sameAction'] ) return;
-																		if ( routeR['action'] === routeS['action'] ) {
-																			let result = [];
-																			result.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																			result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																			result.push(`ACK-false-${routeAFIdx}`);
-																			result.push(`ACK-true-${routeATIdx}`);
-																			result.push(`FIN-${exchgFKey}-${routeFIdx}`);
-																			result.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
-																			result.push(`RST-${exchgRKey}-${routeRIdx}`);
-																			leaf['anomalyInfo']['consistent'].push(result);
-																		} else {
-																			anomalyLocate = []
-																			anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																			anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																			anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-																			anomalyLocate.push(`ACK-true-${routeATIdx}`);
-																			anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
-																			anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
-																			anomalyLocate.push(`RST-${exchgRKey}-${routeRIdx}`);
-																			if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																				leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																			}
-																		}
-																	});
-																});
+// 													_.each(leaf['routeObject']['FIN+ACK'][tarExchgFAKey], function ( routeFA, routeFAIdx ) {
+// 														if ( !routeFA['sameAction'] ) return;
+// 														if ( routeFA['action'] === routeF['action'] ) {
+// 															if ( routeFA['action'] === routeS['action'] ) {
+// 																// check for RST
+// 																_.each(leaf['routeObject']['RST'], function ( exchgR, exchgRKey ) {
+// 																	_.each(exchgR, function ( routeR, routeRIdx ) {
+// 																		if ( !routeR['sameAction'] ) return;
+// 																		if ( routeR['action'] === routeS['action'] ) {
+// 																			let result = [];
+// 																			result.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																			result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																			result.push(`ACK-false-${routeAFIdx}`);
+// 																			result.push(`ACK-true-${routeATIdx}`);
+// 																			result.push(`FIN-${exchgFKey}-${routeFIdx}`);
+// 																			result.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
+// 																			result.push(`RST-${exchgRKey}-${routeRIdx}`);
+// 																			leaf['anomalyInfo']['consistent'].push(result);
+// 																		} else {
+// 																			anomalyLocate = []
+// 																			anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																			anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																			anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 																			anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 																			anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
+// 																			anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
+// 																			anomalyLocate.push(`RST-${exchgRKey}-${routeRIdx}`);
+// 																			if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																				leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																			}
+// 																		}
+// 																	});
+// 																});
 
-																_.each(leaf['routeObject']['RST']['false'], function ( routeRF, routeRFIdx ) {
-																	if ( !routeRF['sameAction'] ) return;
-																	_.each(leaf['routeObject']['RST']['true'], function ( routeRT, routeRTIdx ) {
-																		if ( !routeRT['sameAction'] ) return;
-																		if ( routeRF['action'] === routeRT['action'] ) {
-																			if ( routeRF['action'] === routeS['action'] ) {
-																				// add into consistent list
-																				let result = [];
-																				result.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																				result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																				result.push(`ACK-false-${routeAFIdx}`);
-																				result.push(`ACK-true-${routeATIdx}`);
-																				result.push(`FIN-${exchgFKey}-${routeFIdx}`);
-																				result.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
-																				result.push(`RST-false-${routeRFIdx}`);
-																				result.push(`RST-true-${routeRTIdx}`);
-																				leaf['anomalyInfo']['consistent'].push(result);
-																			} else {
-																				anomalyLocate = [];
-																				anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																				anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																				anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-																				anomalyLocate.push(`ACK-true-${routeATIdx}`);
-																				anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
-																				anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
-																				anomalyLocate.push(`RST-false-${routeRFIdx}`);
-																				anomalyLocate.push(`RST-true-${routeRTIdx}`);
-																				if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																					leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																				}
-																			}
-																		} else {
-																			anomalyLocate = [];
-																			anomalyLocate.push(`RST-false-${routeRFIdx}`);
-																			anomalyLocate.push(`RST-true-${routeRTIdx}`);
-																			if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																				leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																			}
-																		}
-																	});
-																});
+// 																_.each(leaf['routeObject']['RST']['false'], function ( routeRF, routeRFIdx ) {
+// 																	if ( !routeRF['sameAction'] ) return;
+// 																	_.each(leaf['routeObject']['RST']['true'], function ( routeRT, routeRTIdx ) {
+// 																		if ( !routeRT['sameAction'] ) return;
+// 																		if ( routeRF['action'] === routeRT['action'] ) {
+// 																			if ( routeRF['action'] === routeS['action'] ) {
+// 																				// add into consistent list
+// 																				let result = [];
+// 																				result.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																				result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																				result.push(`ACK-false-${routeAFIdx}`);
+// 																				result.push(`ACK-true-${routeATIdx}`);
+// 																				result.push(`FIN-${exchgFKey}-${routeFIdx}`);
+// 																				result.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
+// 																				result.push(`RST-false-${routeRFIdx}`);
+// 																				result.push(`RST-true-${routeRTIdx}`);
+// 																				leaf['anomalyInfo']['consistent'].push(result);
+// 																			} else {
+// 																				anomalyLocate = [];
+// 																				anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																				anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																				anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 																				anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 																				anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
+// 																				anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
+// 																				anomalyLocate.push(`RST-false-${routeRFIdx}`);
+// 																				anomalyLocate.push(`RST-true-${routeRTIdx}`);
+// 																				if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																					leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																				}
+// 																			}
+// 																		} else {
+// 																			anomalyLocate = [];
+// 																			anomalyLocate.push(`RST-false-${routeRFIdx}`);
+// 																			anomalyLocate.push(`RST-true-${routeRTIdx}`);
+// 																			if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																				leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																			}
+// 																		}
+// 																	});
+// 																});
 
-															} else {
-																anomalyLocate = [];
-																anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-																anomalyLocate.push(`ACK-true-${routeATIdx}`);
-																anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
-																anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
-																if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																	leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																}
-															}
-														} else {
-															anomalyLocate = [];
-															anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
-															anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
-															if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-															}
-														}
-													});
+// 															} else {
+// 																anomalyLocate = [];
+// 																anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 																anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 																anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
+// 																anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
+// 																if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																	leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																}
+// 															}
+// 														} else {
+// 															anomalyLocate = [];
+// 															anomalyLocate.push(`FIN-${exchgFKey}-${routeFIdx}`);
+// 															anomalyLocate.push(`FIN+ACK-${tarExchgFAKey}-${routeFAIdx}`);
+// 															if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 															}
+// 														}
+// 													});
 
-												});
-											});
-
-
-											_.each(leaf['routeObject']['FIN']['false'], function ( routeFF, routeFFIdx ) {
-												if ( !routeFF['sameAction'] ) return;
-												_.each(leaf['routeObject']['FIN']['true'], function ( routeFT, routeFTIdx ) {
-													if ( !routeFT['sameAction'] ) return;
-													if ( routeFF['action'] === routeFT['action'] ) {
-														_.each(leaf['routeObject']['FIN+ACK']['false'], function ( routeFAF, routeFAFIdx ) {
-															if ( !routeFAF['sameAction'] ) return;
-															if ( routeFAF['action'] === routeFF['action'] ) {
-																_.each(leaf['routeObject']['FIN+ACK']['true'], function ( routeFAT, routeFATIdx ) {
-																	if ( !routeFAT['sameAction'] ) return;
-																	if ( routeFAT['action'] === routeFAF['action'] ) {
-																		if ( routeFAF['action'] === routeS['action'] ) {
-																			// check for RST
-																			// fix me
-																			_.each(leaf['routeObject']['RST'], function ( exchgR, exchgRKey ) {
-																				_.each(exchgR, function ( routeR, routeRIdx ) {
-																					if ( !routeR['sameAction'] ) return;
-																					if ( routeR['action'] === routeS['action'] ) {
-																						let result = [];
-																						result.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																						result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																						result.push(`ACK-false-${routeAFIdx}`);
-																						result.push(`ACK-true-${routeATIdx}`);
-																						result.push(`FIN-false-${routeFFIdx}`);
-																						result.push(`FIN-true-${routeFTIdx}`);
-																						result.push(`FIN+ACK-false-${routeFAFIdx}`);
-																						result.push(`FIN+ACK-true-${routeFATIdx}`);
-																						result.push(`RST-${exchgRKey}-${routeRIdx}`);
-																						leaf['anomalyInfo']['consistent'].push(result);
-																					} else {
-																						anomalyLocate = [];
-																						anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																						anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																						anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-																						anomalyLocate.push(`ACK-true-${routeATIdx}`);
-																						anomalyLocate.push(`FIN-false-${routeFFIdx}`);
-																						anomalyLocate.push(`FIN-true-${routeFTIdx}`);
-																						anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
-																						anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
-																						anomalyLocate.push(`RST-${exchgRKey}-${routeRIdx}`);
-																						if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																							leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																						}
-																					}
-																				});
-																			});
-
-																			_.each(leaf['routeObject']['RST']['false'], function ( routeRF, routeRFIdx ) {
-																				if ( !routeRF['sameAction'] ) return;
-																				_.each(leaf['routeObject']['RST']['true'], function ( routeRT, routeRTIdx ) {
-																					if ( !routeRT['sameAction'] ) return;
-
-																					if ( routeRF['action'] === routeRT['action'] ) {
-																						if ( routeRF['action'] === routeS['action'] ) {
-																							// add into consistent list
-																							let result = [];
-																							result.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																							result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																							result.push(`ACK-false-${routeAFIdx}`);
-																							result.push(`ACK-true-${routeATIdx}`);
-																							result.push(`FIN-false-${routeFFIdx}`);
-																							result.push(`FIN-true-${routeFTIdx}`);
-																							result.push(`FIN+ACK-false-${routeFAFIdx}`);
-																							result.push(`FIN+ACK-true-${routeFATIdx}`);
-																							result.push(`RST-false-${routeRFIdx}`);
-																							result.push(`RST-true-${routeRTIdx}`);
-																							leaf['anomalyInfo']['consistent'].push(result);
-																						} else {
-																							anomalyLocate = [];
-																							anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																							anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																							anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-																							anomalyLocate.push(`ACK-true-${routeATIdx}`);
-																							anomalyLocate.push(`FIN-false-${routeFFIdx}`);
-																							anomalyLocate.push(`FIN-true-${routeFTIdx}`);
-																							anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
-																							anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
-																							anomalyLocate.push(`RST-false-${routeRFIdx}`);
-																							anomalyLocate.push(`RST-true-${routeRTIdx}`);
-																							if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																								leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																							}
-																						}
-																					} else {
-																						anomalyLocate = [];
-																						anomalyLocate.push(`RST-false-${routeRFIdx}`);
-																						anomalyLocate.push(`RST-true-${routeRTIdx}`);
-																						if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																							leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																						}
-																					}
-																				});
-																			});
+// 												});
+// 											});
 
 
-																		} else {
-																			anomalyLocate = [];
-																			anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-																			anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-																			anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-																			anomalyLocate.push(`ACK-true-${routeATIdx}`);
-																			anomalyLocate.push(`FIN-false-${routeFFIdx}`);
-																			anomalyLocate.push(`FIN-true-${routeFTIdx}`);
-																			anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
-																			anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
-																			if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																				leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																			}
-																		}
-																	} else {
-																		anomalyLocate = [];
-																		anomalyLocate.push(`FIN-false-${routeFFIdx}`);
-																		anomalyLocate.push(`FIN-true-${routeFTIdx}`);
-																		anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
-																		anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
-																		if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																			leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																		}
-																	}
-																});
-															} else {
-																anomalyLocate = [];
-																anomalyLocate.push(`FIN-false-${routeFFIdx}`);
-																anomalyLocate.push(`FIN-true-${routeFTIdx}`);
-																anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
-																if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-																	leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-																}
-															}
-														});
-													} else {
-														anomalyLocate = [];
-														anomalyLocate.push(`FIN-false-${routeFFIdx}`);
-														anomalyLocate.push(`FIN-true-${routeFTIdx}`);
-														if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-															leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-														}
-													}
+// 											_.each(leaf['routeObject']['FIN']['false'], function ( routeFF, routeFFIdx ) {
+// 												if ( !routeFF['sameAction'] ) return;
+// 												_.each(leaf['routeObject']['FIN']['true'], function ( routeFT, routeFTIdx ) {
+// 													if ( !routeFT['sameAction'] ) return;
+// 													if ( routeFF['action'] === routeFT['action'] ) {
+// 														_.each(leaf['routeObject']['FIN+ACK']['false'], function ( routeFAF, routeFAFIdx ) {
+// 															if ( !routeFAF['sameAction'] ) return;
+// 															if ( routeFAF['action'] === routeFF['action'] ) {
+// 																_.each(leaf['routeObject']['FIN+ACK']['true'], function ( routeFAT, routeFATIdx ) {
+// 																	if ( !routeFAT['sameAction'] ) return;
+// 																	if ( routeFAT['action'] === routeFAF['action'] ) {
+// 																		if ( routeFAF['action'] === routeS['action'] ) {
+// 																			// check for RST
+// 																			// fix me
+// 																			_.each(leaf['routeObject']['RST'], function ( exchgR, exchgRKey ) {
+// 																				_.each(exchgR, function ( routeR, routeRIdx ) {
+// 																					if ( !routeR['sameAction'] ) return;
+// 																					if ( routeR['action'] === routeS['action'] ) {
+// 																						let result = [];
+// 																						result.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																						result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																						result.push(`ACK-false-${routeAFIdx}`);
+// 																						result.push(`ACK-true-${routeATIdx}`);
+// 																						result.push(`FIN-false-${routeFFIdx}`);
+// 																						result.push(`FIN-true-${routeFTIdx}`);
+// 																						result.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																						result.push(`FIN+ACK-true-${routeFATIdx}`);
+// 																						result.push(`RST-${exchgRKey}-${routeRIdx}`);
+// 																						leaf['anomalyInfo']['consistent'].push(result);
+// 																					} else {
+// 																						anomalyLocate = [];
+// 																						anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																						anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																						anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 																						anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 																						anomalyLocate.push(`FIN-false-${routeFFIdx}`);
+// 																						anomalyLocate.push(`FIN-true-${routeFTIdx}`);
+// 																						anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																						anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
+// 																						anomalyLocate.push(`RST-${exchgRKey}-${routeRIdx}`);
+// 																						if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																							leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																						}
+// 																					}
+// 																				});
+// 																			});
 
-												});
-											});
+// 																			_.each(leaf['routeObject']['RST']['false'], function ( routeRF, routeRFIdx ) {
+// 																				if ( !routeRF['sameAction'] ) return;
+// 																				_.each(leaf['routeObject']['RST']['true'], function ( routeRT, routeRTIdx ) {
+// 																					if ( !routeRT['sameAction'] ) return;
+
+// 																					if ( routeRF['action'] === routeRT['action'] ) {
+// 																						if ( routeRF['action'] === routeS['action'] ) {
+// 																							// add into consistent list
+// 																							let result = [];
+// 																							result.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																							result.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																							result.push(`ACK-false-${routeAFIdx}`);
+// 																							result.push(`ACK-true-${routeATIdx}`);
+// 																							result.push(`FIN-false-${routeFFIdx}`);
+// 																							result.push(`FIN-true-${routeFTIdx}`);
+// 																							result.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																							result.push(`FIN+ACK-true-${routeFATIdx}`);
+// 																							result.push(`RST-false-${routeRFIdx}`);
+// 																							result.push(`RST-true-${routeRTIdx}`);
+// 																							leaf['anomalyInfo']['consistent'].push(result);
+// 																						} else {
+// 																							anomalyLocate = [];
+// 																							anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																							anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																							anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 																							anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 																							anomalyLocate.push(`FIN-false-${routeFFIdx}`);
+// 																							anomalyLocate.push(`FIN-true-${routeFTIdx}`);
+// 																							anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																							anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
+// 																							anomalyLocate.push(`RST-false-${routeRFIdx}`);
+// 																							anomalyLocate.push(`RST-true-${routeRTIdx}`);
+// 																							if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																								leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																							}
+// 																						}
+// 																					} else {
+// 																						anomalyLocate = [];
+// 																						anomalyLocate.push(`RST-false-${routeRFIdx}`);
+// 																						anomalyLocate.push(`RST-true-${routeRTIdx}`);
+// 																						if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																							leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																						}
+// 																					}
+// 																				});
+// 																			});
 
 
-										} else {
-											anomalyLocate = [];
-											anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-											anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-											anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-											anomalyLocate.push(`ACK-true-${routeATIdx}`);
-											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-												leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-											}
-										}
-									} else {
-										anomalyLocate = [];
-										anomalyLocate.push(`ACK-false-${routeAFIdx}`);
-										anomalyLocate.push(`ACK-true-${routeATIdx}`);
-										if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-											leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-										}
-									}
-								});
-							});
+// 																		} else {
+// 																			anomalyLocate = [];
+// 																			anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 																			anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 																			anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 																			anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 																			anomalyLocate.push(`FIN-false-${routeFFIdx}`);
+// 																			anomalyLocate.push(`FIN-true-${routeFTIdx}`);
+// 																			anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																			anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
+// 																			if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																				leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																			}
+// 																		}
+// 																	} else {
+// 																		anomalyLocate = [];
+// 																		anomalyLocate.push(`FIN-false-${routeFFIdx}`);
+// 																		anomalyLocate.push(`FIN-true-${routeFTIdx}`);
+// 																		anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																		anomalyLocate.push(`FIN+ACK-true-${routeFATIdx}`);
+// 																		if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																			leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																		}
+// 																	}
+// 																});
+// 															} else {
+// 																anomalyLocate = [];
+// 																anomalyLocate.push(`FIN-false-${routeFFIdx}`);
+// 																anomalyLocate.push(`FIN-true-${routeFTIdx}`);
+// 																anomalyLocate.push(`FIN+ACK-false-${routeFAFIdx}`);
+// 																if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 																	leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 																}
+// 															}
+// 														});
+// 													} else {
+// 														anomalyLocate = [];
+// 														anomalyLocate.push(`FIN-false-${routeFFIdx}`);
+// 														anomalyLocate.push(`FIN-true-${routeFTIdx}`);
+// 														if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 															leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 														}
+// 													}
 
-						} else {
-							anomalyLocate = [];
-							anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
-							anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
-							if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-								leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-							}
-						}
-					});
+// 												});
+// 											});
+
+
+// 										} else {
+// 											anomalyLocate = [];
+// 											anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 											anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 											anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 											anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 											if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 												leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 											}
+// 										}
+// 									} else {
+// 										anomalyLocate = [];
+// 										anomalyLocate.push(`ACK-false-${routeAFIdx}`);
+// 										anomalyLocate.push(`ACK-true-${routeATIdx}`);
+// 										if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 											leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 										}
+// 									}
+// 								});
+// 							});
+
+// 						} else {
+// 							anomalyLocate = [];
+// 							anomalyLocate.push(`SYN-${exchgSKey}-${routeSIdx}`);
+// 							anomalyLocate.push(`SYN+ACK-${tarExchgSAKey}-${routeSAIdx}`);
+// 							if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 								leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 							}
+// 						}
+// 					});
 					
-				}); //	exchgS
-			});
+// 				}); //	exchgS
+// 			});
 
-			// anomalyLocate = `ANY-false-${routeFIdx},ANY-true-${routeTIdx}`;
-			// if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-			// 	leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-			// }
+// 			// anomalyLocate = `ANY-false-${routeFIdx},ANY-true-${routeTIdx}`;
+// 			// if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 			// 	leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 			// }
 
-			if ( leaf['anomalyInfo']['consistent'].length === 0 ) {
-				leaf['anomalyInfo']['anomaly'] = true;
-			}
-		} else {
-			_.each(leaf['routeObject']['ANY']['false'], function ( routeF, routeFIdx ) {
-				if ( routeF['sameAction'] ) {
-					_.each(leaf['routeObject']['ANY']['true'], function ( routeT, routeTIdx ) {
-						if ( routeT['sameAction'] ) {
-							if ( routeF['action'] === routeT['action'] ) {
-								leaf['anomalyInfo']['consistent'].push([`ANY-false-${routeFIdx}`, `ANY-true-${routeTIdx}`]);
-							} else {
-								anomalyLocate = [`ANY-false-${routeFIdx}`, `ANY-true-${routeTIdx}`];
-								if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
-									leaf['anomalyInfo']['conflict'].push(anomalyLocate);
-								}
-							}
-						}
-					});
-				}
-			});
+// 			if ( leaf['anomalyInfo']['consistent'].length === 0 ) {
+// 				leaf['anomalyInfo']['anomaly'] = true;
+// 			}
+// 		} else {
+// 			_.each(leaf['routeObject']['ANY']['false'], function ( routeF, routeFIdx ) {
+// 				if ( routeF['sameAction'] ) {
+// 					_.each(leaf['routeObject']['ANY']['true'], function ( routeT, routeTIdx ) {
+// 						if ( routeT['sameAction'] ) {
+// 							if ( routeF['action'] === routeT['action'] ) {
+// 								leaf['anomalyInfo']['consistent'].push([`ANY-false-${routeFIdx}`, `ANY-true-${routeTIdx}`]);
+// 							} else {
+// 								anomalyLocate = [`ANY-false-${routeFIdx}`, `ANY-true-${routeTIdx}`];
+// 								if ( !checkElementIsExistInArray(anomalyLocate, leaf['anomalyInfo']['conflict']) ) {
+// 									leaf['anomalyInfo']['conflict'].push(anomalyLocate);
+// 								}
+// 							}
+// 						}
+// 					});
+// 				}
+// 			});
 
-			if ( leaf['anomalyInfo']['consistent'].length === 0 ) {
-				leaf['anomalyInfo']['anomaly'] = true;
-			}
-		}
-	//console.log('routeObject',node.nodeName,leaf['routeObject']);
-	});
+// 			if ( leaf['anomalyInfo']['consistent'].length === 0 ) {
+// 				leaf['anomalyInfo']['anomaly'] = true;
+// 			}
+// 		}
+// 	//console.log('routeObject',node.nodeName,leaf['routeObject']);
+// 	});
 
-}
+// }
 	//console.log('portLeaf',node.nodeName,portLeaf);
 function depictportResult (portleaf, thisindex, curNode) 
 {	//console.log('thisindex',thisindex);
@@ -1887,7 +1893,7 @@ function depictportResult (portleaf, thisindex, curNode)
 			}
 		};
 		//var copyData = clone(dataList);
-		console.log('event',event);
+		//console.log('event',event);
 		chart.series = createSeries(dataList);
 		Highcharts.chart(chartID, chart);
 	}
@@ -1990,6 +1996,7 @@ function createPortChart ( copyData,event) {
 	$('.show-rule-btn').on('click', function(e) {
 		console.log('show-rule-btn');
 		e.preventDefault();
+		consolelog('e',e);
 		let ruleOrder = $(this).find('label').text();
 		let [fw, eth, io] = $($(this).closest('tbody')).prev().find('td')[$(this).parent()[0].cellIndex].innerHTML.split('<br>');
 		let rule = myObject['aclObject'][fw]['ruleObject'][eth][io][ruleOrder];
@@ -2187,7 +2194,7 @@ function and(mergedVector){
 				//console.log('i',i,'j',j,'z',z);
 				andVector[i][j]['data'][z] = mergedVector[0][i]['data'][z] & mergedVector[1][j]['data'][z];							
 			}
-			// console.log('andVector[i][j]',andVector[i][j]);	
+			//console.log('andVector[i][j]',andVector[i][j]);	
 		}
 	}
 	return andVector;
